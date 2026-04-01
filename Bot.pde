@@ -124,6 +124,19 @@ class Bot {
       } else if (_streak % 20 == 0) {
         spawnStreakBurst(cx, cy, col);
       }
+
+      // Score milestones
+      int[] thresholds = {100, 250, 500, 1000, 2000, 3000, 5000};
+      for (int th : thresholds) {
+        if (score == th) {
+          milestoneFrame[id] = frameCount;
+          milestoneValue[id] = th;
+          milestoneX[id] = cx;
+          milestoneY[id] = cy;
+          spawnStreakBurst(cx, cy, col);
+          break;
+        }
+      }
     } else {
       _streak = 0;
     }

@@ -192,6 +192,15 @@ void startCurrentHeat() {
   histCount = 0;
   lastHistStep = 0;
 
+  // Init visual flair for this heat
+  currentLeaderId = -1;
+  leadChangeFrame = -999;
+  milestoneFrame = new int[bots.size()];
+  milestoneValue = new int[bots.size()];
+  milestoneX = new float[bots.size()];
+  milestoneY = new float[bots.size()];
+  timePressureIntensity = 0;
+
   initEffects();
 }
 
@@ -456,21 +465,33 @@ void drawBracketView() {
   }
 
   // ── Current heat details (below bracket) ──────────────────
-  float detailY = height * 0.74;
+  float detailY = height * 0.72;
+  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.08);
 
-  fill(arcadeBlue);
-  textSize(12);
+  // Header with glow
   textAlign(PConstants.CENTER, PConstants.TOP);
-  text("NEXT: " + curRound.label + " - HEAT " + (currentHeat + 1) + "/" + curRound.heats.size(), cx, detailY);
+  fill(arcadeBlue, 30);
+  textSize(22);
+  String heatLabel = "NEXT: " + curRound.label + " - HEAT " + (currentHeat + 1) + "/" + curRound.heats.size();
+  text(heatLabel, cx, detailY);
+  fill(arcadeBlue, 220 + 35 * pulse);
+  textSize(20);
+  text(heatLabel, cx, detailY);
 
-  // Competitor list — two columns
+  // Neon divider
+  stroke(arcadeBlue, 80 * pulse);
+  strokeWeight(1);
+  line(cx - 280, detailY + 26, cx + 280, detailY + 26);
+  noStroke();
+
+  // Competitor list — bigger names, bolder swatches
   int n = curHeat.bots.size();
-  int cols = (n > 5) ? 2 : 1;
+  int cols = (n > 7) ? 3 : (n > 4) ? 2 : 1;
   int perCol = (int) ceil((float) n / cols);
-  float listW = 160;
+  float listW = 240;
   float listX = cx - (cols * listW) / 2;
-  float rowH = min(18, (height * 0.16) / perCol);
-  float listY = detailY + 22;
+  float rowH = min(26, (height * 0.16) / perCol);
+  float listY = detailY + 34;
 
   for (int i = 0; i < n; i++) {
     int col = i / perCol;
@@ -479,26 +500,37 @@ void drawBracketView() {
     float bx = listX + col * listW;
     float by = listY + row * rowH;
 
+    // Swatch with glow
+    fill(red(b.col), green(b.col), blue(b.col), 40);
+    noStroke();
+    rect(bx - 1, by + 1, 16, 16, 2);
     fill(b.col);
-    rect(bx, by + 2, 8, 8);
+    rect(bx, by + 2, 14, 14);
+
+    // Name — larger
     fill(b.col);
-    textSize(8);
+    textSize(13);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(displayName(b.name), bx + 12, by + 1);
+    text(displayName(b.name), bx + 20, by + 2);
   }
 
-  // Stats + prompt
+  // Stats
   int alive = 0;
   for (BotEntry b : allBots) if (b.alive) alive++;
-  fill(60);
-  textSize(7);
+  fill(120);
+  textSize(11);
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  text(alive + " BOTS ALIVE  |  TOP " + curRound.advanceCount + " ADVANCE", cx, height * 0.92);
+  text(alive + " BOTS ALIVE  |  TOP " + curRound.advanceCount + " ADVANCE", cx, height * 0.93);
 
-  if ((tourneyTimer % 50) < 35) {
-    fill(255, 255, 0);
-    textSize(8);
-    text("PRESS SPACE TO START", cx, height * 0.96);
+  // "PRESS SPACE" — big flashing
+  boolean blink = (tourneyTimer % 45) < 30;
+  if (blink) {
+    fill(255, 255, 0, 30);
+    textSize(22);
+    text("PRESS SPACE TO START", cx, height * 0.97);
+    fill(255, 255, 0, 200 + 55 * pulse);
+    textSize(20);
+    text("PRESS SPACE TO START", cx, height * 0.97);
   }
 }
 
@@ -506,77 +538,116 @@ void drawHeatResults() {
   // Keep game board visible behind results
   drawPlayArea();
 
-  // Semi-transparent overlay so results are readable
+  // Darker overlay for readability
   noStroke();
-  fill(0, 160);
+  fill(0, 190);
   rect(0, 0, width, height);
+
+  // CRT scanlines
+  for (int y = 0; y < height; y += 4) {
+    fill(0, 12);
+    rect(0, y, width, 2);
+  }
 
   TournamentRound round = rounds.get(currentRound);
   Heat heat = round.heats.get(currentHeat);
 
-  // Center on game area, not full window
+  // Center on game area
   int gridW = COLS * CELL + INSET * 2;
   float cx = MARGIN + gridW / 2.0;
   int gridH = ROWS * CELL + INSET * 2;
   float gameTop = TOP_MARGIN + MARGIN;
+  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.08);
 
-  // Header
-  fill(arcadeBlue);
-  textSize(16);
+  // Header — big neon with glow
   textAlign(PConstants.CENTER, PConstants.TOP);
-  text("HEAT RESULTS", cx, gameTop + gridH * 0.08);
+  fill(arcadeBlue, 30);
+  textSize(38);
+  text("HEAT RESULTS", cx + 2, gameTop + gridH * 0.04 + 2);
+  fill(arcadeBlue, 220 + 35 * pulse);
+  textSize(36);
+  text("HEAT RESULTS", cx, gameTop + gridH * 0.04);
+
+  // Neon divider
+  float divY = gameTop + gridH * 0.11;
+  for (int layer = 2; layer >= 0; layer--) {
+    stroke(arcadeBlue, (3 - layer) * 30 * pulse);
+    strokeWeight(1 + layer * 2);
+    line(cx - 280, divY, cx + 280, divY);
+  }
+  noStroke();
 
   // Results list
-  float startY = gameTop + gridH * 0.18;
-  float rowH = min(30, (gridH * 0.60) / heat.bots.size());
+  float startY = gameTop + gridH * 0.14;
+  float rowH = min(38, (gridH * 0.65) / heat.bots.size());
 
-  for (int i = 0; i < heat.bots.size(); i++) {
+  // Animate rows appearing
+  int rowsToShow = min(heat.bots.size(), (int)(tourneyTimer * heat.bots.size() / 40.0) + 1);
+
+  for (int i = 0; i < rowsToShow; i++) {
     BotEntry b = heat.bots.get(i);
     float by = startY + i * rowH;
     boolean advanced = i < round.advanceCount;
 
-    // Rank
-    fill(advanced ? color(255, 255, 0) : color(80));
-    textSize(11);
+    // Row background for advancing bots
+    if (advanced) {
+      fill(255, 255, 0, 8);
+      noStroke();
+      rect(cx - 200, by - 1, 400, rowH - 2, 4);
+    }
+
+    // Rank — big and bold
+    fill(advanced ? color(255, 255, 0) : color(60));
+    textSize(16);
     textAlign(PConstants.RIGHT, PConstants.TOP);
-    text(str(i + 1), cx - 90, by + 2);
+    text(str(i + 1), cx - 110, by + 4);
 
-    // Swatch
-    fill(advanced ? b.col : color(red(b.col) * 0.3, green(b.col) * 0.3, blue(b.col) * 0.3));
-    rect(cx - 82, by + 3, 10, 10);
+    // Swatch with glow
+    color swatchCol = advanced ? b.col : color(red(b.col) * 0.3, green(b.col) * 0.3, blue(b.col) * 0.3);
+    if (advanced) {
+      fill(red(b.col), green(b.col), blue(b.col), 40);
+      noStroke();
+      rect(cx - 100, by + 2, 20, 20, 2);
+    }
+    fill(swatchCol);
+    rect(cx - 98, by + 4, 16, 16);
 
-    // Name
-    fill(advanced ? b.col : color(60));
-    textSize(11);
+    // Name — white for advancing, dim for eliminated
+    fill(advanced ? color(255) : color(60));
+    textSize(14);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(displayName(b.name), cx - 66, by + 2);
+    text(displayName(b.name), cx - 76, by + 4);
 
     // Score
     fill(advanced ? color(255) : color(60));
-    textSize(11);
+    textSize(14);
     textAlign(PConstants.RIGHT, PConstants.TOP);
-    text(nfc(heat.finalScores[i]), cx + 120, by + 2);
+    text(nfc(heat.finalScores[i]), cx + 140, by + 4);
 
-    // ADVANCE / ELIMINATED
+    // ADVANCE / OUT — bold labels
     if (advanced) {
       fill(0, 255, 128);
-      textSize(8);
+      textSize(11);
       textAlign(PConstants.LEFT, PConstants.TOP);
-      text("ADVANCE", cx + 130, by + 4);
+      text("ADVANCE", cx + 152, by + 6);
     } else {
-      fill(255, 0, 0, 120);
-      textSize(8);
+      fill(255, 0, 0, 150);
+      textSize(11);
       textAlign(PConstants.LEFT, PConstants.TOP);
-      text("OUT", cx + 130, by + 4);
+      text("OUT", cx + 152, by + 6);
     }
   }
 
-  // Next prompt
-  if ((tourneyTimer % 50) < 35) {
-    fill(arcadeBlue);
-    textSize(10);
+  // Next prompt — big flashing
+  boolean blink = (tourneyTimer % 45) < 30;
+  if (blink) {
+    fill(255, 255, 0, 30);
+    textSize(24);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.92);
+    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.90);
+    fill(255, 255, 0, 200 + 55 * pulse);
+    textSize(22);
+    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.90);
   }
 }
 
@@ -585,27 +656,72 @@ void drawChampionScreen() {
   fill(0, 180);
   rect(0, 0, width, height);
 
+  // CRT scanlines
+  for (int y = 0; y < height; y += 4) {
+    fill(0, 12);
+    rect(0, y, width, 2);
+  }
+
   float cx = width / 2.0;
   float cy = height / 2.0;
+  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.1);
+  float fastPulse = 0.5 + 0.5 * sin(tourneyTimer * 0.25);
 
-  // Flashing champion text
+  // "CHAMPION" — massive neon with glow layers
   boolean blink = (tourneyTimer % 40) < 30;
   if (blink) {
-    fill(255, 255, 0);
-    textSize(28);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("CHAMPION", cx, cy - 50);
+
+    // Glow layers
+    fill(255, 255, 0, 15);
+    textSize(64);
+    text("CHAMPION", cx + 3, cy - 80 + 3);
+    text("CHAMPION", cx - 3, cy - 80 - 3);
+
+    fill(255, 255, 0, 30);
+    textSize(62);
+    text("CHAMPION", cx, cy - 80);
+
+    // Main
+    fill(255, 255, 0, 220 + 35 * pulse);
+    textSize(60);
+    text("CHAMPION", cx, cy - 80);
   }
 
   if (champion != null) {
-    fill(champion.col);
-    textSize(20);
-    textAlign(PConstants.CENTER, PConstants.CENTER);
-    text(displayName(champion.name), cx, cy + 10);
+    // Neon dividers — white/gold
+    for (int layer = 2; layer >= 0; layer--) {
+      stroke(255, 255, 200, (3 - layer) * 30 * pulse);
+      strokeWeight(1 + layer * 2);
+      line(cx - 300, cy - 35, cx + 300, cy - 35);
+    }
+    noStroke();
 
-    fill(255);
-    textSize(12);
-    text("TOTAL SCORE: " + nfc(champion.totalScore), cx, cy + 50);
+    // Winner name — huge, bright white with glow
+    textAlign(PConstants.CENTER, PConstants.CENTER);
+
+    fill(255, 255, 255, 30);
+    textSize(42);
+    text(displayName(champion.name), cx + 2, cy + 15 + 2);
+    text(displayName(champion.name), cx - 2, cy + 15 - 2);
+
+    fill(255, 255, 255, 240);
+    textSize(40);
+    text(displayName(champion.name), cx, cy + 15);
+
+    // Score
+    fill(255, 200);
+    textSize(20);
+    text("TOTAL SCORE: " + nfc(champion.totalScore), cx, cy + 70);
+
+    // Pulsing ring around the name
+    noFill();
+    stroke(255, 255, 200, 80 * pulse);
+    strokeWeight(2);
+    float ringW = 500 * (0.95 + 0.05 * fastPulse);
+    float ringH = 80 * (0.95 + 0.05 * fastPulse);
+    ellipse(cx, cy + 15, ringW, ringH);
+    noStroke();
   }
 
   fill(arcadeBlue, 80);

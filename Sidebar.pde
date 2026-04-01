@@ -95,6 +95,15 @@ void drawSidebar() {
     if (di == 0) {
       fill(255, 255, 0, 15);
       rect(3, ey, sw - 6, entryH);
+
+      // Lead change flash — #1 row flashes bright on takeover
+      int leadAge = frameCount - leadChangeFrame;
+      if (leadAge < 30) {
+        float flash = 1.0 - (float) leadAge / 30;
+        float pulse = 0.5 + 0.5 * sin(leadAge * 0.8);
+        fill(255, 255, 0, flash * pulse * 120);
+        rect(3, ey, sw - 6, entryH);
+      }
     } else if (di < 3) {
       fill(255, 255, 255, 5);
       rect(3, ey, sw - 6, entryH);

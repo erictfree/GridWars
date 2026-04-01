@@ -210,6 +210,188 @@ void drawGridEffects() {
       p.show();
     }
   }
+  drawMilestonePopups();
+  drawCrownIndicator();
+  drawProximitySparks();
+}
+
+// ── 1. Score milestone floating popups ──────────────────────
+
+float[] milestoneX, milestoneY;  // saved position at moment of milestone
+
+void drawMilestonePopups() {
+  if (milestoneFrame == null) return;
+  for (int i = 0; i < bots.size(); i++) {
+    int age = frameCount - milestoneFrame[i];
+    if (age < 35 && milestoneFrame[i] > 0) {
+      float cx = milestoneX[i];
+      float cy = milestoneY[i];
+      float drift = age * 2.0;
+
+      // Hard pop: full opacity then fast cut
+      float alpha = age < 20 ? 255 : 255 * (1.0 - (float)(age - 20) / 15);
+
+      // Big scale punch on frame 1, snaps to size fast
+      float pop = age < 5 ? 1.0 + (1.0 - age / 5.0) * 1.0 : 1.0;
+      float sz = constrain(20 + (milestoneValue[i] / 250) * 3, 20, 32) * pop;
+
+      String label = nfc(milestoneValue[i]) + "!";
+      textSize(sz);
+      textAlign(PConstants.CENTER, PConstants.CENTER);
+
+      // Bold shadow
+      fill(0, alpha);
+      text(label, cx + 2, cy - drift + 2);
+
+      // Main text — bright white punch
+      fill(255, 255, 255, alpha);
+      text(label, cx, cy - drift);
+    }
+  }
+}
+
+// ── 6. Crown indicator over leader ──────────────────────────
+
+void drawCrownIndicator() {
+  if (currentLeaderId < 0 || currentLeaderId >= bots.size()) return;
+  Bot leader = bots.get(currentLeaderId);
+  float cx = leader.x * CELL + CELL / 2.0;
+  float cy = leader.y * CELL + CELL / 2.0;
+  float bob = sin(frameCount * 0.1) * 1.5;
+
+  float radius = 80;
+  float bubbleX = cx;
+  float bubbleY = cy - CELL * 8 + bob;
+
+  // Clamp so bubble stays within grid
+  bubbleX = constrain(bubbleX, radius + 4, COLS * CELL - radius - 4);
+  bubbleY = constrain(bubbleY, radius + 4, ROWS * CELL - radius - 4);
+
+  float pulse = 0.7 + 0.3 * sin(frameCount * 0.15);
+
+  // How many grid cells to show across the diameter
+  int viewCells = 7;
+  float magCell = (radius * 2.0) / viewCells;  // size of each magnified cell
+
+  // Clip to circle using a mask approach: draw into the circle area
+  // We'll draw cell by cell, only if within the circle radius
+
+  int startC = leader.x - viewCells / 2;
+  int startR = leader.y - viewCells / 2;
+
+  for (int dr = 0; dr < viewCells; dr++) {
+    for (int dc = 0; dc < viewCells; dc++) {
+      float mx = bubbleX - radius + dc * magCell;
+      float my = bubbleY - radius + dr * magCell;
+      float mcx = mx + magCell / 2;
+      float mcy = my + magCell / 2;
+
+      // Check if cell center is within circle
+      float dist = dist(mcx, mcy, bubbleX, bubbleY);
+      if (dist > radius - 2) continue;
+
+      int gr = startR + dr;
+      int gc = startC + dc;
+
+      noStroke();
+      if (gr < 0 || gr >= ROWS || gc < 0 || gc >= COLS) {
+        fill(20);
+      } else {
+        int owner = grid[gr][gc];
+        if (owner == -1) {
+          fill(10, 10, 20);
+        } else {
+          color base = bots.get(owner).col;
+          fill(base);
+        }
+      }
+      rect(mx, my, magCell, magCell);
+
+      // Draw the bot indicator in the center cell
+      if (gr == leader.y && gc == leader.x) {
+        float blink = (frameCount + leader.id * 7) % 30 < 25 ? 1 : 0.7;
+        fill(255, 255 * blink);
+        float dotSz = magCell * 0.5;
+        rect(mcx - dotSz / 2, mcy - dotSz / 2, dotSz, dotSz);
+      }
+
+      // Grid lines
+      stroke(255, 40);
+      strokeWeight(0.5);
+      line(mx, my, mx + magCell, my);
+      line(mx, my, mx, my + magCell);
+      noStroke();
+    }
+  }
+
+  // Circle border — gold ring
+  noFill();
+  stroke(255, 255, 0, 200 * pulse);
+  strokeWeight(3);
+  ellipse(bubbleX, bubbleY, radius * 2, radius * 2);
+
+  // Outer glow ring
+  stroke(255, 255, 0, 60 * pulse);
+  strokeWeight(6);
+  ellipse(bubbleX, bubbleY, radius * 2 + 8, radius * 2 + 8);
+  noStroke();
+
+  // Connecting line from bubble to bot
+  stroke(255, 255, 0, 100 * pulse);
+  strokeWeight(1);
+  float lineTop = bubbleY + radius + 3;
+  float lineBot = cy - CELL;
+  if (lineBot > lineTop) {
+    line(bubbleX, lineTop, cx, lineBot);
+  }
+  noStroke();
+
+  // "#1" label at top of bubble
+  fill(0, 160);
+  noStroke();
+  rect(bubbleX - 18, bubbleY - radius - 18, 36, 16, 4);
+  fill(255, 255, 0, 230 * pulse);
+  textSize(11);
+  textAlign(PConstants.CENTER, PConstants.CENTER);
+  text("#1", bubbleX, bubbleY - radius - 11);
+}
+
+// ── 5. Proximity sparks between nearby bots ─────────────────
+
+void drawProximitySparks() {
+  if (gameOver) return;
+  for (int i = 0; i < bots.size(); i++) {
+    Bot a = bots.get(i);
+    for (int j = i + 1; j < bots.size(); j++) {
+      Bot b = bots.get(j);
+      float dx = a.x - b.x;
+      float dy = a.y - b.y;
+      float dist = sqrt(dx * dx + dy * dy);
+      if (dist < 5 && dist > 0) {
+        // Electrical spark between them
+        float ax = a.x * CELL + CELL / 2.0;
+        float ay = a.y * CELL + CELL / 2.0;
+        float bx = b.x * CELL + CELL / 2.0;
+        float by = b.y * CELL + CELL / 2.0;
+        float sparkAlpha = (1.0 - dist / 5) * 180;
+
+        stroke(255, 255, 255, sparkAlpha);
+        strokeWeight(1);
+        // Jagged lightning line
+        float mx = (ax + bx) / 2 + random(-CELL * 2, CELL * 2);
+        float my = (ay + by) / 2 + random(-CELL * 2, CELL * 2);
+        line(ax, ay, mx, my);
+        line(mx, my, bx, by);
+        noStroke();
+
+        // Occasional spark particles
+        if (random(1) < 0.1) {
+          color sc = lerpColor(a.col, b.col, 0.5);
+          spawnClaimSparkle(mx, my, sc);
+        }
+      }
+    }
+  }
 }
 
 // Draw confetti in screen coordinates

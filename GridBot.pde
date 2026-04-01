@@ -1,7 +1,7 @@
 import processing.sound.*;
 
 // ── Constants ────────────────────────────────────────────────
-final int NUM_THEMES = 9;
+final int NUM_THEMES = 2;
 final int TARGET_ROWS = 120;  // desired row count — COLS computed to fill width
 final int SIDE_W = 250;       // scoreboard width
 final int BOT   = 52;
@@ -45,6 +45,13 @@ boolean gameOver;
 boolean confettiSpawned;
 boolean needsScreenshot;
 
+// ── Visual flair state ──────────────────────────────────────
+int currentLeaderId = -1;
+int leadChangeFrame = -999;
+int[] milestoneFrame;        // per-bot: frame of last milestone popup
+int[] milestoneValue;        // per-bot: value to display
+float timePressureIntensity = 0;
+
 // ── Game state machine (test mode) ──────────────────────────
 // 0=SPLASH, 1=INTRO, 2=COUNTDOWN, 3=PLAYING
 int gameState = 0;
@@ -73,7 +80,7 @@ void setup() {
   size(100, 100);  // placeholder — resized below
   pixelDensity(1);
 
-  int winW = 1400;
+  int winW = 1770;
   int winH = 1100;
 
   // Equal padding on all sides
@@ -189,6 +196,14 @@ void initGame() {
   histCount = 0;
   lastHistStep = 0;
 
+  // Init visual flair
+  currentLeaderId = -1;
+  leadChangeFrame = -999;
+  milestoneFrame = new int[bots.size()];
+  milestoneValue = new int[bots.size()];
+  milestoneX = new float[bots.size()];
+  milestoneY = new float[bots.size()];
+
   initEffects();
 }
 
@@ -269,9 +284,36 @@ void runSimulation() {
     }
   }
 
-  // Ambient sparkles during gameplay
+  // Ambient sparkles during gameplay — intensify under time pressure
   if (!gameOver && frameCount % 6 == 0) {
     spawnAmbientSparkles();
+    if (timePressureIntensity > 0 && frameCount % 3 == 0) {
+      spawnAmbientSparkles();  // double rate in final seconds
+    }
+  }
+
+  // Lead change detection
+  if (!gameOver) {
+    int leaderId = 0;
+    for (int i = 1; i < bots.size(); i++) {
+      if (bots.get(i).score > bots.get(leaderId).score) leaderId = i;
+    }
+    if (currentLeaderId >= 0 && leaderId != currentLeaderId) {
+      leadChangeFrame = frameCount;
+      Bot newLeader = bots.get(leaderId);
+      spawnMegaBurst(newLeader.x * CELL + CELL / 2.0, newLeader.y * CELL + CELL / 2.0, newLeader.col);
+    }
+    currentLeaderId = leaderId;
+  }
+
+  // Time pressure — last 15 seconds
+  if (!gameOver && gameStartMillis > 0) {
+    int remaining = GAME_TIME_MS - (millis() - gameStartMillis);
+    if (remaining < 15000) {
+      timePressureIntensity = 1.0 - (float) remaining / 15000;
+    } else {
+      timePressureIntensity = 0;
+    }
   }
 
   if (gameOver && !confettiSpawned) {
@@ -302,9 +344,25 @@ void drawPlayArea() {
   fill(12, 16, 38, 170);
   rect(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
 
-  // Border — bright neon glow
-  stroke(arcadeBlue, 160);
-  strokeWeight(2);
+  // Border — bright neon glow, pulses red under time pressure
+  color borderCol = arcadeBlue;
+  float borderAlpha = 160;
+  float borderWeight = 2;
+  if (timePressureIntensity > 0 && !gameOver) {
+    float pulse = 0.5 + 0.5 * sin(frameCount * 0.2 * (1 + timePressureIntensity));
+    borderCol = lerpColor(arcadeBlue, color(255, 0, 0), timePressureIntensity * pulse);
+    borderAlpha = 160 + 95 * timePressureIntensity * pulse;
+    borderWeight = 2 + 2 * timePressureIntensity * pulse;
+  }
+  // Lead change flash — border flashes white briefly
+  int leadAge = frameCount - leadChangeFrame;
+  if (leadAge < 20) {
+    float flash = 1.0 - (float) leadAge / 20;
+    borderCol = lerpColor(borderCol, color(255, 255, 0), flash);
+    borderAlpha = max(borderAlpha, 255 * flash);
+  }
+  stroke(borderCol, borderAlpha);
+  strokeWeight(borderWeight);
   noFill();
   rect(MARGIN + 1, TOP_MARGIN + MARGIN + 1, gridW - 2, gridH - 2, CORNER);
   noStroke();
@@ -401,10 +459,26 @@ void drawGrid() {
       if (owner == -1) {
         fill(0, 100);  // unclaimed — background shows through
       } else {
-        color base = bots.get(owner).col;
+        Bot ownerBot = bots.get(owner);
+        color base = ownerBot.col;
+
         fill(red(base), green(base), blue(base), 235);
       }
       rect(c * CELL, r * CELL, CELL, CELL);
+
+      // 3. Territory shimmer — rolling sparkle wave, stronger for higher scores
+      if (owner >= 0) {
+        Bot ownerBot = bots.get(owner);
+        float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
+        // Each bot gets its own wave offset based on id
+        float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
+        if (wave > 0.5) {
+          float intensity = (wave - 0.5) * 2.0;  // 0–1
+          float shimmerAlpha = intensity * (20 + 50 * scorePct);
+          fill(255, shimmerAlpha);
+          rect(c * CELL, r * CELL, CELL, CELL);
+        }
+      }
 
       // Subtle claim flash — brief brightening in the cell's own color
       if (owner >= 0 && claimFrame[r][c] > 0) {
