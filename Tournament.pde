@@ -16,9 +16,9 @@ class BotEntry {
   }
 
   // Creates a bot instance — tries student class by name, falls back to type
-  BasePainter createInstance(int x, int y) {
+  Bot createInstance(int x, int y) {
     // Try student bot class by name
-    BasePainter b = createStudentBot(name, x, y, col);
+    Bot b = createStudentBot(name, x, y, col);
     if (b != null) return b;
     // Fall back to reference bot type
     switch (botType) {
@@ -164,7 +164,7 @@ void startCurrentHeat() {
     java.util.Arrays.fill(grid[r], -1);
   }
 
-  painters = new ArrayList<BasePainter>();
+  bots = new ArrayList<Bot>();
 
   int margin = 3;
   boolean[][] taken = new boolean[ROWS][COLS];
@@ -178,17 +178,17 @@ void startCurrentHeat() {
     } while (taken[sy][sx]);
     taken[sy][sx] = true;
 
-    BasePainter bot = entry.createInstance(sx, sy);
-    addPainter(bot);
+    Bot bot = entry.createInstance(sx, sy);
+    addBot(bot);
   }
 
   stepCount = 0;
-  unclaimed = COLS * ROWS - painters.size();
+  unclaimed = COLS * ROWS - bots.size();
   gameOver = false;
   confettiSpawned = false;
   gameStartMillis = 0;
 
-  scoreHistory = new int[painters.size()][HIST_LEN];
+  scoreHistory = new int[bots.size()][HIST_LEN];
   histCount = 0;
   lastHistStep = 0;
 
@@ -200,10 +200,10 @@ void finishCurrentHeat() {
   TournamentRound round = rounds.get(currentRound);
   Heat heat = round.heats.get(currentHeat);
 
-  // Sort painters by score
-  ArrayList<BasePainter> sorted = new ArrayList<BasePainter>(painters);
-  java.util.Collections.sort(sorted, new java.util.Comparator<BasePainter>() {
-    public int compare(BasePainter a, BasePainter b) {
+  // Sort bots by score
+  ArrayList<Bot> sorted = new ArrayList<Bot>(bots);
+  java.util.Collections.sort(sorted, new java.util.Comparator<Bot>() {
+    public int compare(Bot a, Bot b) {
       return b.score - a.score;
     }
   });
@@ -212,7 +212,7 @@ void finishCurrentHeat() {
   heat.finalScores = new int[heat.bots.size()];
   ArrayList<BotEntry> reordered = new ArrayList<BotEntry>();
   for (int i = 0; i < sorted.size(); i++) {
-    BasePainter p = sorted.get(i);
+    Bot p = sorted.get(i);
     BotEntry entry = heat.bots.get(p.id);
     entry.totalScore += p.score;
     heat.finalScores[i] = p.score;
@@ -503,24 +503,32 @@ void drawBracketView() {
 }
 
 void drawHeatResults() {
+  // Keep game board visible behind results
+  drawPlayArea();
+
+  // Semi-transparent overlay so results are readable
   noStroke();
-  fill(0, 200);
+  fill(0, 160);
   rect(0, 0, width, height);
 
   TournamentRound round = rounds.get(currentRound);
   Heat heat = round.heats.get(currentHeat);
 
-  float cx = width / 2.0;
+  // Center on game area, not full window
+  int gridW = COLS * CELL + INSET * 2;
+  float cx = MARGIN + gridW / 2.0;
+  int gridH = ROWS * CELL + INSET * 2;
+  float gameTop = TOP_MARGIN + MARGIN;
 
   // Header
   fill(arcadeBlue);
   textSize(16);
   textAlign(PConstants.CENTER, PConstants.TOP);
-  text("HEAT RESULTS", cx, height * 0.12);
+  text("HEAT RESULTS", cx, gameTop + gridH * 0.08);
 
   // Results list
-  float startY = height * 0.22;
-  float rowH = min(30, (height * 0.55) / heat.bots.size());
+  float startY = gameTop + gridH * 0.18;
+  float rowH = min(30, (gridH * 0.60) / heat.bots.size());
 
   for (int i = 0; i < heat.bots.size(); i++) {
     BotEntry b = heat.bots.get(i);
@@ -568,7 +576,7 @@ void drawHeatResults() {
     fill(arcadeBlue);
     textSize(10);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("PRESS SPACE TO CONTINUE", cx, height * 0.90);
+    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.92);
   }
 }
 

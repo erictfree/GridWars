@@ -1,20 +1,15 @@
-void drawGameOver() {
-  float gridW = COLS * CELL;
-  float gridH = ROWS * CELL;
-
-  // Dark overlay
-  noStroke();
-  fill(0, 180);
-  rect(0, 0, gridW, gridH);
+// Full-screen game over — shown over the background after screenshot is taken
+void drawGameOverFull() {
+  // Center on game area, not full window
+  int gridW = COLS * CELL + INSET * 2;
+  float cx = MARGIN + gridW / 2.0;
+  float cy = height / 2.0;
 
   // Find winner
-  BasePainter winner = painters.get(0);
-  for (BasePainter p : painters) {
+  Bot winner = bots.get(0);
+  for (Bot p : bots) {
     if (p.score > winner.score) winner = p;
   }
-
-  float mx = gridW / 2.0;
-  float my = gridH / 2.0;
 
   // Flashing "GAME OVER" — arcade blink
   boolean blink = (frameCount % 40) < 30;
@@ -22,25 +17,25 @@ void drawGameOver() {
     fill(255, 0, 0);
     textSize(36);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("GAME OVER", mx, my - 50);
+    text("GAME OVER", cx, cy - 50);
   }
 
   // Winner
   fill(winner.col);
   textSize(22);
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  text(winner.name, mx, my + 5);
+  text(winner.name, cx, cy + 5);
 
   // Score
   float pct = (float) winner.score / (COLS * ROWS) * 100;
   fill(255);
   textSize(14);
-  text(nfc(winner.score) + " CELLS  " + nf(pct, 1, 1) + "%", mx, my + 35);
+  text(nfc(winner.score) + " CELLS  " + nf(pct, 1, 1) + "%", cx, cy + 35);
 
   // Insert coin prompt
   fill(arcadeBlue);
   textSize(12);
   if ((frameCount % 60) < 40) {
-    text("PRESS RESTART TO PLAY AGAIN", mx, my + 70);
+    text("PRESS SPACE TO PLAY AGAIN", cx, cy + 70);
   }
 }

@@ -5,14 +5,18 @@ void drawSidebar() {
   float gridH = ROWS * CELL;
   float sh = gridH;
 
-  // Background
+  // Outer glow
   noStroke();
-  fill(0, 160);
+  fill(0, 180, 220, 18);
+  rect(-3, -3, sw + 6, sh + 6, CORNER + 4);
+
+  // Background — tinted blue-purple glass
+  fill(12, 16, 38, 170);
   rect(0, 0, sw, sh, CORNER);
 
-  // Border
-  stroke(arcadeBlue, 60);
-  strokeWeight(1);
+  // Border — bright neon glow
+  stroke(arcadeBlue, 160);
+  strokeWeight(2);
   noFill();
   rect(1, 1, sw - 2, sh - 2, CORNER);
   noStroke();
@@ -29,9 +33,9 @@ void drawSidebar() {
   noStroke();
 
   // Sort
-  ArrayList<BasePainter> sorted = new ArrayList<BasePainter>(painters);
-  java.util.Collections.sort(sorted, new java.util.Comparator<BasePainter>() {
-    public int compare(BasePainter a, BasePainter b) {
+  ArrayList<Bot> sorted = new ArrayList<Bot>(bots);
+  java.util.Collections.sort(sorted, new java.util.Comparator<Bot>() {
+    public int compare(Bot a, Bot b) {
       return b.score - a.score;
     }
   });
@@ -61,7 +65,7 @@ void drawSidebar() {
   int showing = n;
   float listTop = 28;
   float listBot = gridH - 6;
-  float entryH  = (listBot - listTop) / showing;
+  float entryH  = min(50, (listBot - listTop) / showing);  // cap height so few entries don't stretch
   float pad     = 6;
   float ex      = pad;
   float ew      = sw - pad * 2;
@@ -79,7 +83,7 @@ void drawSidebar() {
 
   for (int vi = 0; vi < showing; vi++) {
     int di = vi;
-    BasePainter p = sorted.get(di);
+    Bot p = sorted.get(di);
     float ey = listTop + vi * entryH;
 
     // Alternating row bg

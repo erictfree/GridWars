@@ -11,7 +11,7 @@ final int INSET  = 4;         // inner padding so cells don't overwrite border
 final int STEPS = 5;
 final int SPEED = 80;          // simulation speed % (1–100)
 final int FLASH_FRAMES = 8;    // cell claim flash duration (short and subtle)
-final int GAME_TIME_MS = 10000;  // 10 seconds per game (testing)
+final int GAME_TIME_MS = 120000;  // 2 minutes per game
 
 // Computed in setup()
 int COLS, ROWS, CELL, SIDE, LIMIT, TOP_MARGIN;
@@ -38,11 +38,12 @@ boolean tournamentMode = false;
 // ── Game state ──────────────────────────────────────────────
 int[][] grid;
 int[][] claimFrame;
-ArrayList<BasePainter> painters;
+ArrayList<Bot> bots;
 int stepCount;
 int unclaimed;
 boolean gameOver;
 boolean confettiSpawned;
+boolean needsScreenshot;
 
 // ── Game state machine (test mode) ──────────────────────────
 // 0=SPLASH, 1=INTRO, 2=COUNTDOWN, 3=PLAYING
@@ -100,40 +101,8 @@ void setup() {
   RIGHT = new Direction( 1,  0);
   DIRS  = new Direction[]{ UP, DOWN, LEFT, RIGHT };
 
-  // Init retro palette
-  // Neon synthwave palette — matches the cyan/magenta background
-  PALETTE = new color[] {
-    color(  0, 255, 255),  // neon cyan
-    color(255,   0, 128),  // hot pink
-    color(255, 255,   0),  // electric yellow
-    color(128,   0, 255),  // neon purple
-    color(  0, 255, 128),  // neon green
-    color(255, 100,   0),  // neon orange
-    color(100, 140, 255),  // periwinkle blue
-    color(255,   0, 255),  // magenta
-    color(  0, 200, 100),  // emerald
-    color(255, 180,   0),  // amber
-    color(  0, 180, 255),  // sky cyan
-    color(255,  60,  60),  // neon red
-    color(180, 255,   0),  // lime
-    color(200,   0, 200),  // violet
-    color(255, 200, 100),  // peach
-    color(  0, 255, 200),  // aquamarine
-    color(255, 100, 200),  // pink
-    color(100, 255, 100),  // bright green
-    color(255, 140, 60),   // tangerine
-    color(140,  80, 255),  // iris
-    color(255, 220, 60),   // gold
-    color( 60, 220, 220),  // teal
-    color(255,  60, 160),  // rose
-    color( 80, 200, 255),  // light blue
-    color(220, 255, 100),  // chartreuse
-    color(255,  80, 80),   // coral
-    color(100, 255, 220),  // mint
-    color(220, 100, 255),  // lavender
-    color(255, 160, 120),  // salmon
-    color(120, 255, 160)   // seafoam
-  };
+  // Init retro palette — randomly chosen each run
+  randomizePalette();
 
   // Init colors — match screen.png neon palette (cyan/magenta)
   unclaimedColor = color(0);
@@ -172,7 +141,7 @@ void initGame() {
     java.util.Arrays.fill(grid[r], -1);
   }
 
-  painters = new ArrayList<BasePainter>();
+  bots = new ArrayList<Bot>();
 
   // Use test bot registry
   int margin = 3;
@@ -192,20 +161,25 @@ void initGame() {
     entry.alive = true;
     entry.totalScore = 0;
 
-    BasePainter bot = entry.createInstance(sx, sy);
-    addPainter(bot);
+    Bot bot = entry.createInstance(sx, sy);
+    addBot(bot);
   }
 
   stepCount  = 0;
-  unclaimed  = COLS * ROWS - painters.size();
+  unclaimed  = COLS * ROWS - bots.size();
   gameOver   = false;
   confettiSpawned = false;
+  needsScreenshot = false;
   gameState  = 0;
   stateTimer = 0;
-  gameStartMillis = 0;  // set when game actually starts playing
+  gameStartMillis = 0;
+
+  // Fresh palette each run
+  randomizePalette();
+  registerTestBots();  // re-register with new colors
 
   // Init score history
-  scoreHistory = new int[painters.size()][HIST_LEN];
+  scoreHistory = new int[bots.size()][HIST_LEN];
   histCount = 0;
   lastHistStep = 0;
 
@@ -213,9 +187,9 @@ void initGame() {
   playRandomTheme();
 }
 
-void addPainter(BasePainter p) {
-  p.id = painters.size();
-  painters.add(p);
+void addBot(Bot p) {
+  p.id = bots.size();
+  bots.add(p);
   grid[p.y][p.x] = p.id;
   p.score = 1;
 }
@@ -239,25 +213,22 @@ void draw() {
     return;
   }
 
-  // ── Test mode state machine ───────────────────────────────
+  // ── Test mode: wait for space, then play ───────────────────
   if (gameState == 0) {
-    if (stateTimer >= SPLASH_FRAMES) { gameState = 1; stateTimer = 0; }
-    return;
-  }
-  if (gameState == 1) {
-    drawIntro();
-    if (stateTimer >= INTRO_FRAMES) { gameState = 2; stateTimer = 0; }
-    return;
-  }
-  if (gameState == 2) {
-    drawCountdown();
-    if (stateTimer >= COUNTDOWN_FRAMES) { gameState = 3; stateTimer = 0; }
+    drawTestIntro();
     return;
   }
 
   // ── PLAYING ───────────────────────────────────────────────
   runSimulation();
-  drawPlayArea();
+
+  if (gameOver && !needsScreenshot) {
+    // After screenshot taken, show winner over background only
+    drawGameOverFull();
+    drawEffects();
+  } else {
+    drawPlayArea();
+  }
 }
 
 // ── Simulation step ─────────────────────────────────────────
@@ -269,8 +240,8 @@ void runSimulation() {
 
     int stepsThisFrame = max(1, round(STEPS * SPEED / 100.0));
     for (int s = 0; s < stepsThisFrame; s++) {
-      GameInfo game = new GameInfo(grid, COLS, ROWS, painters, stepCount, LIMIT);
-      for (BasePainter p : painters) {
+      GameInfo game = new GameInfo(grid, COLS, ROWS, bots, stepCount, LIMIT);
+      for (Bot p : bots) {
         p.update(game);
       }
       stepCount++;
@@ -278,8 +249,8 @@ void runSimulation() {
       if (stepCount - lastHistStep >= HIST_RATE) {
         lastHistStep = stepCount;
         int si = histCount % HIST_LEN;
-        for (int i = 0; i < painters.size(); i++) {
-          scoreHistory[i][si] = painters.get(i).score;
+        for (int i = 0; i < bots.size(); i++) {
+          scoreHistory[i][si] = bots.get(i).score;
         }
         histCount++;
       }
@@ -295,11 +266,12 @@ void runSimulation() {
 
   if (gameOver && !confettiSpawned) {
     confettiSpawned = true;
-    BasePainter winner = painters.get(0);
-    for (BasePainter p : painters) {
+    Bot winner = bots.get(0);
+    for (Bot p : bots) {
       if (p.score > winner.score) winner = p;
     }
     spawnConfetti(winner.col);
+    needsScreenshot = true;
   }
 
   updateEffects();
@@ -311,14 +283,18 @@ void drawPlayArea() {
   int gridW = COLS * CELL + INSET * 2;
   int gridH = ROWS * CELL + INSET * 2;
 
-  // Rounded backdrop
+  // Outer glow
   noStroke();
-  fill(0, 160);
+  fill(0, 180, 220, 18);
+  rect(MARGIN - 3, TOP_MARGIN + MARGIN - 3, gridW + 6, gridH + 6, CORNER + 4);
+
+  // Rounded backdrop — tinted blue-purple glass
+  fill(12, 16, 38, 170);
   rect(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
 
-  // Border
-  stroke(arcadeBlue, 60);
-  strokeWeight(1);
+  // Border — bright neon glow
+  stroke(arcadeBlue, 160);
+  strokeWeight(2);
   noFill();
   rect(MARGIN + 1, TOP_MARGIN + MARGIN + 1, gridW - 2, gridH - 2, CORNER);
   noStroke();
@@ -328,25 +304,29 @@ void drawPlayArea() {
   translate(MARGIN + INSET, TOP_MARGIN + MARGIN + INSET);
 
   drawGrid();
-  for (BasePainter p : painters) {
-    p.show();
+  if (!gameOver) {
+    for (Bot p : bots) {
+      p.show();
+    }
   }
   drawHUD();
-  if (gameOver) {
-    drawGameOver();
-  }
 
   popMatrix();
 
-  roundCorners(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
+  // Save just the game grid (no bots, no overlays)
+  if (needsScreenshot) {
+    needsScreenshot = false;
+    int imgW = COLS * CELL;
+    int imgH = ROWS * CELL;
+    PImage gameImg = get(MARGIN + INSET, TOP_MARGIN + MARGIN + INSET, imgW, imgH);
+    gameImg.save(sketchPath("images/game-" + year() + nf(month(),2) + nf(day(),2) + "-" + nf(hour(),2) + nf(minute(),2) + nf(second(),2) + ".png"));
+  }
 
   // Sidebar
   pushMatrix();
   translate(MARGIN + gridW + MARGIN, TOP_MARGIN + MARGIN);
   drawSidebar();
   popMatrix();
-
-  roundCorners(MARGIN + gridW + MARGIN, TOP_MARGIN + MARGIN, SIDE - MARGIN, gridH, CORNER);
 
   // Confetti on top
   drawEffects();
@@ -408,7 +388,7 @@ void drawGrid() {
       if (owner == -1) {
         fill(0, 100);  // unclaimed — background shows through
       } else {
-        color base = painters.get(owner).col;
+        color base = bots.get(owner).col;
         fill(red(base), green(base), blue(base), 235);
       }
       rect(c * CELL, r * CELL, CELL, CELL);
@@ -425,8 +405,8 @@ void drawGrid() {
     }
   }
 
-  // Blue grid lines — Pac-Man maze style
-  stroke(arcadeBlue, 30);
+  // Grid lines
+  stroke(255, 20);
   strokeWeight(0.5);
   for (int r = 0; r <= ROWS; r++) {
     line(0, r * CELL, COLS * CELL, r * CELL);
@@ -449,38 +429,6 @@ void drawGrid() {
         line(c * CELL, (r + 1) * CELL, (c + 1) * CELL, (r + 1) * CELL);
       }
     }
-  }
-}
-
-// ── Rounded corner masking ───────────────────────────────────
-// Redraws the background image into the four corners of a rect
-// to create the illusion of rounded corners over the grid.
-
-void roundCorners(float rx, float ry, float rw, float rh, float rad) {
-  if (bgImg == null) return;
-  // We'll draw small corner patches by copying from the bg image
-  // For each corner, draw a filled rect from the bg, then cut out the arc
-  noStroke();
-  for (int corner = 0; corner < 4; corner++) {
-    float cx, cy;  // corner origin
-    float arcCx, arcCy;  // arc center
-    float startAngle;
-    switch(corner) {
-      case 0: cx = rx;          cy = ry;          arcCx = rx + rad;       arcCy = ry + rad;       startAngle = PI;       break; // TL
-      case 1: cx = rx + rw - rad; cy = ry;        arcCx = rx + rw - rad;  arcCy = ry + rad;       startAngle = -HALF_PI; break; // TR
-      case 2: cx = rx;          cy = ry + rh - rad; arcCx = rx + rad;     arcCy = ry + rh - rad;  startAngle = HALF_PI;  break; // BL
-      default: cx = rx + rw - rad; cy = ry + rh - rad; arcCx = rx + rw - rad; arcCy = ry + rh - rad; startAngle = 0; break; // BR
-    }
-    // Draw a small square of bg in the corner
-    float srcX = cx / width * bgImg.width;
-    float srcY = cy / height * bgImg.height;
-    float srcW = rad / width * bgImg.width;
-    float srcH = rad / height * bgImg.height;
-    copy(bgImg, (int)srcX, (int)srcY, (int)srcW, (int)srcH,
-         (int)cx, (int)cy, (int)rad, (int)rad);
-    // Then draw a filled arc to cut the round shape back out
-    fill(0, 160);  // match the backdrop alpha
-    arc(arcCx, arcCy, rad * 2, rad * 2, startAngle, startAngle + HALF_PI, PIE);
   }
 }
 
@@ -507,7 +455,16 @@ void keyPressed() {
     playRandomTheme();
   }
 
-  // SPACE = advance tournament
+  // SPACE = start test / restart after game over / advance tournament
+  if (key == ' ' && !tournamentMode && gameState == 0) {
+    gameState = 1;  // start playing
+    return;
+  }
+  if (key == ' ' && !tournamentMode && gameOver) {
+    initGame();
+    gameState = 1;  // jump straight to playing
+    return;
+  }
   if (key == ' ' && tournamentMode) {
     if (tourneyPhase == 0) {
       // Start the heat — new music each heat
