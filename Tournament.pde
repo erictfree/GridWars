@@ -379,7 +379,7 @@ void drawBracketView() {
           fill(winner.col);
           textSize(min(7, innerRowH - 1));
           textAlign(PConstants.LEFT, PConstants.TOP);
-          text(winner.name, bx + 4, by + 2 + wi * innerRowH);
+          text(displayName(winner.name), bx + 4, by + 2 + wi * innerRowH);
         }
       } else if (roundActive) {
         // Current round — show bot count
@@ -484,7 +484,7 @@ void drawBracketView() {
     fill(b.col);
     textSize(8);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(b.name, bx + 12, by + 1);
+    text(displayName(b.name), bx + 12, by + 1);
   }
 
   // Stats + prompt
@@ -549,7 +549,7 @@ void drawHeatResults() {
     fill(advanced ? b.col : color(60));
     textSize(11);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(b.name, cx - 66, by + 2);
+    text(displayName(b.name), cx - 66, by + 2);
 
     // Score
     fill(advanced ? color(255) : color(60));
@@ -601,7 +601,7 @@ void drawChampionScreen() {
     fill(champion.col);
     textSize(20);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text(champion.name, cx, cy + 10);
+    text(displayName(champion.name), cx, cy + 10);
 
     fill(255);
     textSize(12);

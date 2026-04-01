@@ -24,7 +24,7 @@ void drawGameOverFull() {
   fill(winner.col);
   textSize(22);
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  text(winner.name, cx, cy + 5);
+  text(displayName(winner.name), cx, cy + 5);
 
   // Score
   float pct = (float) winner.score / (COLS * ROWS) * 100;

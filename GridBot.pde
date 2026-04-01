@@ -134,6 +134,12 @@ void playRandomTheme() {
   music.loop();
 }
 
+void stopMusic() {
+  if (music != null && music.isPlaying()) {
+    music.stop();
+  }
+}
+
 void initGame() {
   grid = new int[ROWS][COLS];
   claimFrame = new int[ROWS][COLS];
@@ -184,7 +190,6 @@ void initGame() {
   lastHistStep = 0;
 
   initEffects();
-  playRandomTheme();
 }
 
 void addBot(Bot p) {
@@ -434,6 +439,17 @@ void drawGrid() {
 
 // ── Helpers ─────────────────────────────────────────────────
 
+// Split "LastFirst" into "First Last"
+String displayName(String name) {
+  // Find the second uppercase letter — that's where the first name starts
+  for (int i = 1; i < name.length(); i++) {
+    if (Character.isUpperCase(name.charAt(i))) {
+      return name.substring(i) + " " + name.substring(0, i);
+    }
+  }
+  return name;
+}
+
 Direction randomDir() {
   return DIRS[(int) random(DIRS.length)];
 }
@@ -452,12 +468,12 @@ void keyPressed() {
     stateTimer = 0;
     tourneyTimer = 0;
     initTournament();
-    playRandomTheme();
   }
 
   // SPACE = start test / restart after game over / advance tournament
   if (key == ' ' && !tournamentMode && gameState == 0) {
     gameState = 1;  // start playing
+    playRandomTheme();
     return;
   }
   if (key == ' ' && !tournamentMode && gameOver) {
@@ -478,6 +494,7 @@ void keyPressed() {
       if (more) {
         tourneyPhase = 0;  // show next bracket
         tourneyTimer = 0;
+        stopMusic();
       } else {
         // Tournament over
         tourneyPhase = 4;

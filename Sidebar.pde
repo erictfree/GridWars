@@ -120,14 +120,14 @@ void drawSidebar() {
     rect(ex + 17, row1Y + 1, swSz, swSz);
 
     // Name — truncated if needed
-    String displayName = p.name;
-    if (displayName.length() > maxNameLen) {
-      displayName = displayName.substring(0, maxNameLen);
+    String dn = displayName(p.name);
+    if (dn.length() > maxNameLen) {
+      dn = dn.substring(0, maxNameLen);
     }
     fill(p.col);
     textSize(nameSz);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(displayName, ex + 20 + swSz, row1Y);
+    text(dn, ex + 20 + swSz, row1Y);
 
     // ── Row 2: Score + Delta ────────────────────────────────
     float row2Y = ey + entryH * 0.45;
