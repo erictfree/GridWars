@@ -4,7 +4,7 @@ class RandomBot extends BasePainter {
     super(startX, startY, col, name);
   }
 
-  Direction getNextMove(int[][] g, int c, int r) {
+  Direction getNextMove(GameInfo game) {
     return randomDir();
   }
 }

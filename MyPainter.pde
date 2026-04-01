@@ -3,17 +3,28 @@
 //
 //  Rename this class and implement your strategy in getNextMove().
 //
-//  Available inside getNextMove():
-//    this.x, this.y   — your current column and row
-//    this.id           — your painter ID
-//    this.score        — cells you've claimed so far
-//    grid[row][col]    — -1 = unclaimed, N = owned by painter N
-//    cols, rows        — grid dimensions
-//    UP, DOWN, LEFT, RIGHT  — direction constants
-//    DIRS              — array of all four directions
-//    randomDir()       — returns a random direction
+//  The GameInfo object gives you access to the entire game world:
+//    game.grid[row][col]            — raw grid (-1 = unclaimed, N = owner)
+//    game.cols, game.rows           — grid dimensions
+//    game.isUnclaimed(row, col)     — is this cell free?
+//    game.isClaimed(row, col)       — is this cell taken?
+//    game.isMine(row, col, this.id) — do I own this cell?
+//    game.inBounds(row, col)        — is this on the grid?
+//    game.getOwner(row, col)        — who owns it?
+//    game.countUnclaimed()          — total free cells
+//    game.getNearestBot(x, y, id)   — find closest opponent
+//    game.getProgress()             — 0.0 → 1.0 game progress
+//    game.getBot(id)                — look up any bot by ID
 //
-//  You may add any instance variables you need in your constructor.
+//  Helper methods you can call on yourself:
+//    this.canClaim(direction)        — is that direction free to claim?
+//    this.peekCell(direction)        — who owns the cell that way?
+//    this.getFreeDirs()              — list of claimable directions
+//
+//  Your position:  this.x (column), this.y (row)
+//  Your ID:        this.id
+//  Your score:     this.score
+//  Directions:     UP, DOWN, LEFT, RIGHT, DIRS, randomDir()
 // ─────────────────────────────────────────────────────────────
 
 class MyPainter extends BasePainter {
@@ -27,28 +38,34 @@ class MyPainter extends BasePainter {
     // this.trailLength = 25;      // trail length (0 = off, max 40)
   }
 
-  Direction getNextMove(int[][] grid, int cols, int rows) {
+  Direction getNextMove(GameInfo game) {
 
-    // ── Example 1: Random walk (simplest possible bot) ──
+    // ── Example 1: Random walk ──
     return randomDir();
 
     // ── Example 2: Prefer unclaimed neighbors ──
-    // for (Direction d : DIRS) {
-    //   int nx = this.x + d.dx;
-    //   int ny = this.y + d.dy;
-    //   if (nx >= 0 && nx < cols && ny >= 0 && ny < rows
-    //       && grid[ny][nx] == -1) {
-    //     return d;
-    //   }
+    // ArrayList<Direction> free = getFreeDirs();
+    // if (free.size() > 0) {
+    //   return free.get((int) random(free.size()));
     // }
     // return randomDir();
 
-    // ── Example 3: Move toward a target coordinate ──
-    // int targetX = cols / 2, targetY = rows / 2;
+    // ── Example 3: Move toward the center ──
+    // int targetX = game.cols / 2, targetY = game.rows / 2;
     // if (abs(targetX - this.x) > abs(targetY - this.y)) {
     //   return targetX > this.x ? RIGHT : LEFT;
     // } else {
     //   return targetY > this.y ? DOWN : UP;
     // }
+
+    // ── Example 4: Avoid the nearest opponent ──
+    // BasePainter enemy = game.getNearestBot(this.x, this.y, this.id);
+    // if (enemy != null) {
+    //   int dx = this.x - enemy.x;  // move AWAY
+    //   int dy = this.y - enemy.y;
+    //   if (abs(dx) > abs(dy)) return dx > 0 ? RIGHT : LEFT;
+    //   else return dy > 0 ? DOWN : UP;
+    // }
+    // return randomDir();
   }
 }

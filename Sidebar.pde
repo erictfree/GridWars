@@ -1,32 +1,34 @@
+final int RATE_WINDOW = 5;
+
 void drawSidebar() {
-  float sx = COLS * CELL;
-  float sw = SIDE;
-  float sh = ROWS * CELL + BOT;  // extend to cover HUD corner
+  float sw = SIDE - MARGIN;
+  float gridH = ROWS * CELL;
+  float sh = gridH;
 
   // Background
   noStroke();
-  fill(sidebarBg);
-  rect(sx, 0, sw, sh);
+  fill(0, 160);
+  rect(0, 0, sw, sh, CORNER);
 
-  // Subtle left edge highlight
-  stroke(40, 44, 65);
+  // Border
+  stroke(arcadeBlue, 60);
   strokeWeight(1);
-  line(sx, 0, sx, sh);
+  noFill();
+  rect(1, 1, sw - 2, sh - 2, CORNER);
   noStroke();
 
   // Title
-  fill(120, 130, 170);
-  textSize(11);
+  fill(arcadeBlue);
+  textSize(8);
   textAlign(PConstants.CENTER, PConstants.TOP);
-  text("L E A D E R B O A R D", sx + sw / 2, 16);
+  text("LEADERBOARD", sw / 2, 8);
 
-  // Divider
-  stroke(40, 44, 65);
-  strokeWeight(0.5);
-  line(sx + 16, 36, sx + sw - 16, 36);
+  stroke(arcadeBlue, 100);
+  strokeWeight(1);
+  line(8, 22, sw - 8, 22);
   noStroke();
 
-  // Sort painters by score (descending) without mutating the original list
+  // Sort
   ArrayList<BasePainter> sorted = new ArrayList<BasePainter>(painters);
   java.util.Collections.sort(sorted, new java.util.Comparator<BasePainter>() {
     public int compare(BasePainter a, BasePainter b) {
@@ -34,72 +36,138 @@ void drawSidebar() {
     }
   });
 
-  float entryX = sx + 14;
-  float entryW = sw - 28;
-  float entryY = 46;
-  float footerH = 30;
-  float entryH = min(78, (ROWS * CELL - entryY - footerH) / max(1, sorted.size()));
-  int totalCells = COLS * ROWS;
+  int n = sorted.size();
+  int leaderScore = sorted.get(0).score;
 
-  for (int i = 0; i < sorted.size(); i++) {
-    BasePainter p = sorted.get(i);
-    float ey = entryY + i * entryH;
-
-    // Rank badge — gold / silver / bronze for top 3
-    color badgeCol;
-    if      (i == 0) badgeCol = color(255, 210, 60);
-    else if (i == 1) badgeCol = color(180, 190, 210);
-    else if (i == 2) badgeCol = color(205, 140, 75);
-    else             badgeCol = color(55, 58, 75);
-
-    // Badge glow for top 3
-    if (i < 3) {
-      fill(badgeCol, 40);
-      ellipse(entryX + 10, ey + 13, 26, 26);
+  // Compute rates
+  int[] rates = new int[n];
+  int maxRate = 1;
+  int samples = min(histCount, HIST_LEN);
+  for (int i = 0; i < n; i++) {
+    int pid = sorted.get(i).id;
+    if (samples >= RATE_WINDOW) {
+      int oldIdx = (histCount - RATE_WINDOW + HIST_LEN) % HIST_LEN;
+      rates[i] = sorted.get(i).score - scoreHistory[pid][oldIdx];
+    } else if (samples > 0) {
+      int oldIdx = (histCount - samples + HIST_LEN) % HIST_LEN;
+      rates[i] = sorted.get(i).score - scoreHistory[pid][oldIdx];
+    } else {
+      rates[i] = sorted.get(i).score;
     }
-    fill(badgeCol);
-    ellipse(entryX + 10, ey + 13, 20, 20);
-
-    // Rank number
-    fill(i < 3 ? color(20) : color(140));
-    textSize(11);
-    textAlign(PConstants.CENTER, PConstants.CENTER);
-    text(str(i + 1), entryX + 10, ey + 12);
-
-    // Bot name in its color
-    fill(p.col);
-    textSize(13);
-    textAlign(PConstants.LEFT, PConstants.TOP);
-    text(p.name, entryX + 26, ey + 5);
-
-    // Territory bar
-    float pct = (float) p.score / totalCells;
-    float barY = ey + 27;
-    float barH = 8;
-
-    // Bar track
-    fill(30, 32, 48);
-    rect(entryX, barY, entryW, barH, 4);
-
-    // Bar glow (behind fill)
-    fill(p.col, 35);
-    rect(entryX, barY - 1, entryW * pct + 2, barH + 2, 4);
-
-    // Bar fill
-    fill(p.col, 220);
-    rect(entryX, barY, entryW * pct, barH, 4);
-
-    // Score text
-    fill(110, 115, 140);
-    textSize(10);
-    textAlign(PConstants.LEFT, PConstants.TOP);
-    String info = nfc(p.score) + " cells  ·  " + nf(pct * 100, 1, 1) + "%";
-    text(info, entryX, barY + 14);
+    maxRate = max(maxRate, rates[i]);
   }
 
-  // Footer
-  fill(40, 44, 60);
-  textSize(9);
-  textAlign(PConstants.CENTER, PConstants.BOTTOM);
-  text("extend BasePainter", sx + sw / 2, ROWS * CELL - 10);
+  // Layout — 3 rows per entry: name, score+delta, meter
+  int showing = n;
+  float listTop = 28;
+  float listBot = gridH - 6;
+  float entryH  = (listBot - listTop) / showing;
+  float pad     = 6;
+  float ex      = pad;
+  float ew      = sw - pad * 2;
+
+  // Font sizes — pixel font is wide, keep small
+  float nameSz  = constrain(entryH * 0.30, 7, 10);
+  float scoreSz = constrain(entryH * 0.26, 7, 9);
+  float rankSz  = constrain(entryH * 0.24, 6, 8);
+  float deltaSz = constrain(entryH * 0.20, 6, 8);
+  float swSz    = constrain(entryH * 0.16, 4, 7);
+  float barH    = constrain(entryH * 0.14, 2, 5);
+
+  // Max name length (chars) to prevent overflow
+  int maxNameLen = max(6, (int)((ew - 30) / (nameSz * 0.85)));
+
+  for (int vi = 0; vi < showing; vi++) {
+    int di = vi;
+    BasePainter p = sorted.get(di);
+    float ey = listTop + vi * entryH;
+
+    // Alternating row bg
+    if (vi % 2 == 0) {
+      fill(6, 6, 16, 100);
+      rect(3, ey, sw - 6, entryH);
+    }
+
+    // Top-3 highlight
+    if (di == 0) {
+      fill(255, 255, 0, 15);
+      rect(3, ey, sw - 6, entryH);
+    } else if (di < 3) {
+      fill(255, 255, 255, 5);
+      rect(3, ey, sw - 6, entryH);
+    }
+
+    // ── Row 1: Rank + Swatch + Name ─────────────────────────
+    float row1Y = ey + entryH * 0.18;
+
+    // Rank
+    color rankCol;
+    if      (di == 0) rankCol = color(255, 255, 0);
+    else if (di == 1) rankCol = color(200, 200, 220);
+    else if (di == 2) rankCol = color(220, 150, 60);
+    else              rankCol = color(60);
+    fill(rankCol);
+    textSize(rankSz);
+    textAlign(PConstants.RIGHT, PConstants.TOP);
+    text(str(di + 1), ex + 14, row1Y);
+
+    // Color swatch
+    fill(p.col);
+    rect(ex + 17, row1Y + 1, swSz, swSz);
+
+    // Name — truncated if needed
+    String displayName = p.name;
+    if (displayName.length() > maxNameLen) {
+      displayName = displayName.substring(0, maxNameLen);
+    }
+    fill(p.col);
+    textSize(nameSz);
+    textAlign(PConstants.LEFT, PConstants.TOP);
+    text(displayName, ex + 20 + swSz, row1Y);
+
+    // ── Row 2: Score + Delta ────────────────────────────────
+    float row2Y = ey + entryH * 0.45;
+
+    // Score
+    fill(255);
+    textSize(scoreSz);
+    textAlign(PConstants.LEFT, PConstants.TOP);
+    text(nfc(p.score), ex + 20 + swSz, row2Y);
+
+    // Delta
+    textSize(deltaSz);
+    textAlign(PConstants.RIGHT, PConstants.TOP);
+    if (di == 0) {
+      fill(255, 255, 0);
+      text("LEAD", ex + ew, row2Y + 1);
+    } else {
+      fill(60);
+      text("-" + nfc(leaderScore - p.score), ex + ew, row2Y + 1);
+    }
+
+    // ── Row 3: Speed meter ──────────────────────────────────
+    float meterY = ey + entryH * 0.72;
+    float meterL = ex + 20 + swSz;
+    float meterW = ew - 20 - swSz;
+    float ratePct = (float) rates[di] / maxRate;
+
+    fill(10, 10, 20);
+    rect(meterL, meterY, meterW, barH);
+
+    int segments = max(1, (int)(meterW / 4));
+    float segW = meterW / segments;
+    int litSegs = (int)(segments * ratePct);
+
+    for (int s = 0; s < litSegs; s++) {
+      float t = (float) s / segments;
+      color segCol;
+      if (t < 0.5) {
+        segCol = lerpColor(color(0, 180, 0), color(255, 255, 0), t * 2);
+      } else {
+        segCol = lerpColor(color(255, 255, 0), color(255, 0, 0), (t - 0.5) * 2);
+      }
+      fill(segCol);
+      rect(meterL + s * segW, meterY, segW - 1, barH);
+    }
+  }
 }

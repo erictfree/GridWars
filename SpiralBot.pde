@@ -1,28 +1,26 @@
 class SpiralBot extends BasePainter {
 
-  // Clockwise direction sequence: RIGHT → DOWN → LEFT → UP
   Direction[] _cw;
-  int _di    = 0;   // current index into _cw
-  int _steps = 0;   // steps taken in current leg
-  int _limit = 1;   // leg length
-  int _turns = 0;   // total turns made
+  int _di    = 0;
+  int _steps = 0;
+  int _limit = 1;
+  int _turns = 0;
 
   SpiralBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
-  Direction getNextMove(int[][] g, int cols, int rows) {
-    // Lazy-init clockwise array (DIRS not available at construction)
+  Direction getNextMove(GameInfo game) {
     if (_cw == null) {
       _cw = new Direction[]{ RIGHT, DOWN, LEFT, UP };
     }
 
     Direction d = _cw[_di];
 
-    // Wall bounce: if next cell is out of bounds, turn clockwise
+    // Wall bounce
     int nx = this.x + d.dx;
     int ny = this.y + d.dy;
-    if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
+    if (!game.inBounds(ny, nx)) {
       _di = (_di + 1) % 4;
       _steps = 0;
       return _cw[_di];

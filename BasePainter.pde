@@ -5,12 +5,14 @@ class BasePainter {
   String name;
 
   // ── Appearance customization ──────────────────────────────
-  // Set these in your constructor to personalize your bot.
-  float glowSize   = 1.0;    // glow radius multiplier (try 0.5 – 2.0)
-  String label     = "";      // drawn on your bot (letter, symbol, etc.)
-  int trailLength  = 15;      // trail length in steps (0 = no trail)
+  float glowSize   = 1.0;
+  String label     = "";
+  int trailLength  = 15;
 
-  // Trail state (internal)
+  // Game reference (set each step by the engine)
+  GameInfo _game;
+
+  // Trail state
   final int _MAX_TRAIL = 40;
   int[] trailX = new int[_MAX_TRAIL];
   int[] trailY = new int[_MAX_TRAIL];
@@ -30,101 +32,129 @@ class BasePainter {
   //  ★  OVERRIDE THIS METHOD  ★
   //
   //  Called once per simulation step.
-  //  grid : 2D int array — grid[row][col]
-  //                         -1 = unclaimed, N = owned by painter N
-  //  cols : number of columns
-  //  rows : number of rows
+  //  Use the game object to query the world:
+  //    game.grid[row][col]       — raw grid (-1 = unclaimed, N = owner)
+  //    game.isUnclaimed(row,col) — check if a cell is free
+  //    game.isClaimed(row,col)   — check if a cell is taken
+  //    game.isMine(row,col,id)   — check if you own a cell
+  //    game.inBounds(row,col)    — bounds check
+  //    game.getOwner(row,col)    — who owns it? (-1, -2 if OOB)
+  //    game.cols, game.rows      — grid dimensions
+  //    game.countUnclaimed()     — total free cells
+  //    game.getNearestBot(x,y,id)— find closest opponent
+  //    game.getProgress()        — 0.0 → 1.0 game progress
+  //
+  //  Use helper methods on yourself:
+  //    this.canClaim(direction)   — is the cell in that direction free?
+  //    this.peekCell(direction)   — who owns the cell in that direction?
+  //    this.getFreeDirs()         — list of directions with free cells
   //
   //  Must return one of:  UP | DOWN | LEFT | RIGHT
   // ─────────────────────────────────────────────────────────────
-  Direction getNextMove(int[][] grid, int cols, int rows) {
+  Direction getNextMove(GameInfo game) {
     return randomDir();
   }
 
-  // Engine methods — do not override ─────────────────────────
+  // ── Helper methods — use these in getNextMove() ───────────
 
-  void update(int[][] grid, int cols, int rows) {
-    // Record trail
+  /** Can moving in direction d claim an unclaimed cell? */
+  boolean canClaim(Direction d) {
+    int nx = x + d.dx;
+    int ny = y + d.dy;
+    return _game != null && _game.isUnclaimed(ny, nx);
+  }
+
+  /** Is the cell in direction d within the grid? */
+  boolean isInBounds(Direction d) {
+    int nx = x + d.dx;
+    int ny = y + d.dy;
+    return _game != null && _game.inBounds(ny, nx);
+  }
+
+  /** Returns owner of the cell in direction d. -1 = unclaimed, -2 = out of bounds. */
+  int peekCell(Direction d) {
+    int nx = x + d.dx;
+    int ny = y + d.dy;
+    if (_game == null) return -2;
+    return _game.getOwner(ny, nx);
+  }
+
+  /** Returns a list of directions that lead to unclaimed cells. */
+  ArrayList<Direction> getFreeDirs() {
+    ArrayList<Direction> free = new ArrayList<Direction>();
+    for (Direction d : DIRS) {
+      if (canClaim(d)) free.add(d);
+    }
+    return free;
+  }
+
+  // ── Engine methods — do not override ──────────────────────
+
+  void update(GameInfo game) {
+    _game = game;
+
     int tl = constrain(trailLength, 1, _MAX_TRAIL);
     trailX[_trailIdx] = x;
     trailY[_trailIdx] = y;
     _trailIdx = (_trailIdx + 1) % tl;
     if (!_trailFull && _trailIdx == 0) _trailFull = true;
 
-    Direction d = getNextMove(grid, cols, rows);
-    x = constrain(x + d.dx, 0, cols - 1);
-    y = constrain(y + d.dy, 0, rows - 1);
-    if (grid[y][x] == -1) {
-      grid[y][x] = id;
+    Direction d = getNextMove(game);
+    x = constrain(x + d.dx, 0, game.cols - 1);
+    y = constrain(y + d.dy, 0, game.rows - 1);
+    if (game.grid[y][x] == -1) {
+      game.grid[y][x] = id;
       score++;
       unclaimed--;
       claimFrame[y][x] = frameCount;
-      spawnClaimParticles(x, y, col);
     }
   }
 
   void show() {
     noStroke();
     float gs = glowSize;
+    float cx = x * CELL + CELL / 2.0;
+    float cy = y * CELL + CELL / 2.0;
 
-    // ── Trail (comet tail) ──────────────────────────────────
+    // Trail — subtle fading dots
     if (trailLength > 0) {
       int tl = constrain(trailLength, 1, _MAX_TRAIL);
       int count = _trailFull ? tl : _trailIdx;
       for (int i = 0; i < count; i++) {
         int idx = _trailFull ? (_trailIdx + i) % tl : i;
         float t = (float)(i + 1) / (count + 1);
-        fill(col, t * 55);
-        float sz = CELL * 1.2 * t * gs;
-        ellipse(trailX[idx] * CELL + CELL / 2.0,
-                trailY[idx] * CELL + CELL / 2.0, sz, sz);
+        fill(red(col), green(col), blue(col), t * 100);
+        float sz = max(1, CELL * 0.35 * t);
+        rect(trailX[idx] * CELL + (CELL - sz) / 2,
+             trailY[idx] * CELL + (CELL - sz) / 2, sz, sz);
       }
     }
 
-    // ── Main glow (with pulse) ──────────────────────────────
-    float cx = x * CELL + CELL / 2.0;
-    float cy = y * CELL + CELL / 2.0;
-    float pulse = 1.0 + 0.12 * sin(frameCount * 0.12 + id * 1.8);
+    // Bot indicator — pixel-art style
+    float blink = (frameCount + id * 7) % 30 < 25 ? 1 : 0.6;
 
-    // Outer halo
-    fill(col, 30);
-    ellipse(cx, cy, CELL * 4.0 * gs * pulse, CELL * 4.0 * gs * pulse);
+    float outerSize = CELL * 1.8 * gs;
+    fill(red(col) * min(blink * 1.3, 1), green(col) * min(blink * 1.3, 1), blue(col) * min(blink * 1.3, 1));
+    rect(cx - outerSize / 2, cy - outerSize / 2, outerSize, outerSize);
 
-    // Outer glow
-    fill(col, 50);
-    ellipse(cx, cy, CELL * 3.2 * gs * pulse, CELL * 3.2 * gs * pulse);
+    fill(red(col) * blink, green(col) * blink, blue(col) * blink);
+    float coreSize = CELL * 1.3;
+    rect(cx - coreSize / 2, cy - coreSize / 2, coreSize, coreSize);
 
-    // Mid glow
-    fill(col, 110);
-    ellipse(cx, cy, CELL * 2.2 * gs * pulse, CELL * 2.2 * gs * pulse);
+    fill(255, 255 * blink);
+    float hotSize = max(2, CELL * 0.35);
+    rect(cx - hotSize / 2, cy - hotSize / 2, hotSize, hotSize);
 
-    // Ring
-    stroke(col, 70);
-    strokeWeight(1);
-    noFill();
-    ellipse(cx, cy, CELL * 2.6 * gs * pulse, CELL * 2.6 * gs * pulse);
-    noStroke();
-
-    // Core
-    fill(col);
-    ellipse(cx, cy, CELL * 1.5, CELL * 1.5);
-
-    // Specular highlight
-    fill(255, 220);
-    ellipse(cx - 1, cy - 1, CELL * 0.45, CELL * 0.45);
-
-    // ── Label (custom text on bot) ──────────────────────────
     if (label.length() > 0) {
-      fill(255, 240);
-      textSize(CELL * 1.0);
+      fill(255);
+      textSize(CELL * 0.9);
       textAlign(PConstants.CENTER, PConstants.CENTER);
       text(label, cx, cy - 1);
     }
 
-    // ── Name tag above bot ──────────────────────────────────
-    fill(255, 100);
-    textSize(max(8, CELL * 0.85));
+    fill(col);
+    textSize(max(8, CELL * 0.8));
     textAlign(PConstants.CENTER, PConstants.BOTTOM);
-    text(name, cx, cy - CELL * 2.0 * gs);
+    text(name, cx, cy - CELL * 1.4 * gs);
   }
 }

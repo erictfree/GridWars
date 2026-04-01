@@ -1,4 +1,4 @@
-// ── Particle system ─────────────────────────────────────────
+// ── Particle system (confetti only) ─────────────────────────
 
 class Particle {
   float x, y, vx, vy;
@@ -29,10 +29,11 @@ class Particle {
 
   void show() {
     float t = life / maxLife;
-    float s = sz * (0.3 + 0.7 * t);
+    if (t < 0.15 && ((int)(life) % 3 == 0)) return;
     noStroke();
-    fill(c, 255 * t);
-    ellipse(x, y, s, s);
+    fill(c);
+    float s = max(2, sz * (0.5 + 0.5 * t));
+    rect(x - s / 2, y - s / 2, s, s);
   }
 }
 
@@ -42,55 +43,22 @@ void initEffects() {
   particles = new ArrayList<Particle>();
 }
 
-// Sparkles when a cell is claimed
-void spawnClaimParticles(int gridCol, int gridRow, color c) {
-  float cx = gridCol * CELL + CELL / 2.0;
-  float cy = gridRow * CELL + CELL / 2.0;
-  int count = 4 + (int) random(3);
-  for (int i = 0; i < count; i++) {
-    float angle = random(TWO_PI);
-    float speed = random(1.5, 4.0);
-    Particle p = new Particle(
-      cx, cy,
-      cos(angle) * speed, sin(angle) * speed,
-      c, random(10, 20), random(2.5, 5.5)
-    );
-    p.friction = 0.90;
-    particles.add(p);
-  }
-  // Add a couple white sparkle particles
-  for (int i = 0; i < 2; i++) {
-    float angle = random(TWO_PI);
-    float speed = random(1.0, 2.5);
-    Particle p = new Particle(
-      cx, cy,
-      cos(angle) * speed, sin(angle) * speed,
-      color(255), random(6, 12), random(2, 4)
-    );
-    p.friction = 0.88;
-    particles.add(p);
-  }
-}
-
-// Confetti celebration on game over
+// Confetti on game over — restrained, celebratory
 void spawnConfetti(color winnerCol) {
   float gridW = COLS * CELL;
-  for (int i = 0; i < 200; i++) {
-    float x = random(gridW);
-    float y = random(-300, -20);
-    float vx = random(-1.5, 1.5);
-    float vy = random(1.5, 5.0);
+  for (int i = 0; i < 80; i++) {
+    float x = random(width);
+    float y = random(-200, -20);
+    float vx = random(-1, 1);
+    float vy = random(1.5, 4);
     color c;
     float roll = random(1);
-    if (roll < 0.4) {
-      c = winnerCol;
-    } else if (roll < 0.6) {
-      c = lerpColor(winnerCol, color(255), 0.5);
-    } else {
-      c = color(random(120, 255), random(120, 255), random(120, 255));
-    }
-    Particle p = new Particle(x, y, vx, vy, c, random(180, 300), random(4, 10));
-    p.gravity = 0.05;
+    if (roll < 0.4) c = winnerCol;
+    else if (roll < 0.6) c = color(255, 255, 0);
+    else if (roll < 0.8) c = color(0, 255, 255);
+    else c = color(255);
+    Particle p = new Particle(x, y, vx, vy, c, random(120, 200), random(3, 6));
+    p.gravity = 0.04;
     p.friction = 0.998;
     particles.add(p);
   }

@@ -1,4 +1,4 @@
-# Territory Grab — Product Requirements Document
+# Grid Wars — Product Requirements Document
 
 **Course:** AET310 Creative Coding  
 **School:** School of Design & Creative Technologies, UT Austin  
@@ -9,7 +9,7 @@
 
 ## 1. Concept
 
-Territory Grab is a real-time multi-agent grid game. Each student submits a **Painter bot** — a subclass of `BasePainter` — that autonomously moves around a shared grid and claims cells by color. The bot with the most cells at the end of the round wins. All bots run simultaneously in the same sketch; students never touch the engine, only their subclass.
+Grid Wars is a real-time multi-agent grid game. Each student submits a **Painter bot** — a subclass of `BasePainter` — that autonomously moves around a shared grid and claims cells by color. The bot with the most cells at the end of the round wins. All bots run simultaneously in the same sketch; students never touch the engine, only their subclass.
 
 The pedagogical goal is identical to the Snake tournament: the base class does all the hard work, and students override exactly one method. The game has a very low floor (a random walker is a valid submission) and a high ceiling (BFS, Voronoi, influence maps, etc.).
 

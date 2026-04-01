@@ -4,14 +4,15 @@ class FrontierBot extends BasePainter {
     super(startX, startY, col, name);
   }
 
-  Direction getNextMove(int[][] g, int cols, int rows) {
+  Direction getNextMove(GameInfo game) {
+    int cols = game.cols;
+    int rows = game.rows;
     int total = cols * rows;
     boolean[] visited = new boolean[total];
 
-    // BFS queues — parallel arrays for speed
     int[] qx = new int[total];
     int[] qy = new int[total];
-    int[] qd = new int[total];  // index of first direction from start
+    int[] qd = new int[total];
     int head = 0, tail = 0;
 
     visited[this.y * cols + this.x] = true;
@@ -20,11 +21,11 @@ class FrontierBot extends BasePainter {
     for (int i = 0; i < DIRS.length; i++) {
       int nx = this.x + DIRS[i].dx;
       int ny = this.y + DIRS[i].dy;
-      if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+      if (game.inBounds(ny, nx)) {
         int idx = ny * cols + nx;
         if (!visited[idx]) {
           visited[idx] = true;
-          if (g[ny][nx] == -1) return DIRS[i];  // adjacent unclaimed — go there
+          if (game.isUnclaimed(ny, nx)) return DIRS[i];
           qx[tail] = nx;
           qy[tail] = ny;
           qd[tail] = i;
@@ -43,11 +44,11 @@ class FrontierBot extends BasePainter {
       for (int i = 0; i < DIRS.length; i++) {
         int nx = cx + DIRS[i].dx;
         int ny = cy + DIRS[i].dy;
-        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+        if (game.inBounds(ny, nx)) {
           int idx = ny * cols + nx;
           if (!visited[idx]) {
             visited[idx] = true;
-            if (g[ny][nx] == -1) return DIRS[fd];  // found unclaimed — follow first step
+            if (game.isUnclaimed(ny, nx)) return DIRS[fd];
             qx[tail] = nx;
             qy[tail] = ny;
             qd[tail] = fd;
@@ -57,6 +58,6 @@ class FrontierBot extends BasePainter {
       }
     }
 
-    return randomDir();  // all cells claimed
+    return randomDir();
   }
 }
