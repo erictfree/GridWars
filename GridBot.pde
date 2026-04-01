@@ -2,14 +2,14 @@ import processing.sound.*;
 
 // ── Constants ────────────────────────────────────────────────
 final int NUM_THEMES = 9;
-final int TARGET_ROWS = 110;  // desired row count — COLS computed to fill width
+final int TARGET_ROWS = 120;  // desired row count — COLS computed to fill width
 final int SIDE_W = 250;       // scoreboard width
 final int BOT   = 52;
 final int MARGIN = 12;        // margin around play area
 final int CORNER = 16;        // rounded corner radius
 final int INSET  = 4;         // inner padding so cells don't overwrite border
 final int STEPS = 5;
-final int SPEED = 80;          // simulation speed % (1–100)
+final int SPEED = 100;          // simulation speed % (1–100)
 final int FLASH_FRAMES = 8;    // cell claim flash duration (short and subtle)
 final int GAME_TIME_MS = 120000;  // 2 minutes per game
 
@@ -73,8 +73,8 @@ void setup() {
   size(100, 100);  // placeholder — resized below
   pixelDensity(1);
 
-  int winW = 1200;
-  int winH = 900;
+  int winW = 1400;
+  int winH = 1100;
 
   // Equal padding on all sides
   TOP_MARGIN = MARGIN;
@@ -269,6 +269,11 @@ void runSimulation() {
     }
   }
 
+  // Ambient sparkles during gameplay
+  if (!gameOver && frameCount % 6 == 0) {
+    spawnAmbientSparkles();
+  }
+
   if (gameOver && !confettiSpawned) {
     confettiSpawned = true;
     Bot winner = bots.get(0);
@@ -315,6 +320,9 @@ void drawPlayArea() {
     }
   }
   drawHUD();
+
+  // Grid-local sparkle effects (claim sparkles + ambient)
+  drawGridEffects();
 
   popMatrix();
 

@@ -2,8 +2,7 @@ final int RATE_WINDOW = 5;
 
 void drawSidebar() {
   float sw = SIDE - MARGIN;
-  float gridH = ROWS * CELL;
-  float sh = gridH;
+  float sh = ROWS * CELL + INSET * 2;
 
   // Outer glow
   noStroke();
@@ -64,7 +63,7 @@ void drawSidebar() {
   // Layout — 3 rows per entry: name, score+delta, meter
   int showing = n;
   float listTop = 28;
-  float listBot = gridH - 6;
+  float listBot = sh - 6;
   float entryH  = min(50, (listBot - listTop) / showing);  // cap height so few entries don't stretch
   float pad     = 6;
   float ex      = pad;

@@ -26,7 +26,10 @@ class Bot {
     this.name = name;
     this.id   = -1;
     this.score = 0;
+    this._streak = 0;
   }
+
+  int _streak = 0;
 
   // ─────────────────────────────────────────────────────────────
   //  ★  OVERRIDE THIS METHOD  ★
@@ -107,6 +110,22 @@ class Bot {
       score++;
       unclaimed--;
       claimFrame[y][x] = frameCount;
+      _streak++;
+
+      // Sparkle on claim
+      float cx = x * CELL + CELL / 2.0;
+      float cy = y * CELL + CELL / 2.0;
+      if (random(1) < 0.15) {
+        spawnClaimSparkle(cx, cy, col);
+      }
+      // Streak burst every 20 consecutive claims
+      if (_streak % 100 == 0) {
+        spawnMegaBurst(cx, cy, col);
+      } else if (_streak % 20 == 0) {
+        spawnStreakBurst(cx, cy, col);
+      }
+    } else {
+      _streak = 0;
     }
   }
 
