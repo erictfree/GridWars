@@ -30,6 +30,11 @@
 **VO:**
 "On tournament day, every bot hits the grid in a live showdown. Heats. Elimination rounds. One champion. This is where their coding skills really pay off — and where all those superpowers they've been building all semester come in handy."
 
+## [CUT TO — Beast mode launch: all bots on one massive grid, chaos, confetti]
+
+**VO:**
+"And just when they think it's over — Beast Mode. Every single bot. One grid. All at once. No brackets, no rounds. Just a hundred students' code fighting it out in real time."
+
 ## [CLOSING — Champion screen with confetti, then game board image]
 
 **VO:**

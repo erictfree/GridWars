@@ -1,4 +1,4 @@
-class BaileyTheo extends BasePainter {
+class BaileyTheo extends Bot {
   Direction[] _cw;
   int _di = 0, _steps = 0, _limit = 1, _turns = 0;
   BaileyTheo(int x, int y, color c, String name) { super(x, y, c, name); }

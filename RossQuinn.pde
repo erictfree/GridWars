@@ -1,4 +1,4 @@
-class RossQuinn extends BasePainter {
+class RossQuinn extends Bot {
   RossQuinn(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     ArrayList<Direction> free = getFreeDirs();

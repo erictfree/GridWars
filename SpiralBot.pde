@@ -1,4 +1,4 @@
-class SpiralBot extends BasePainter {
+class SpiralBot extends Bot {
 
   Direction[] _cw;
   int _di    = 0;

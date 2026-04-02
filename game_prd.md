@@ -9,7 +9,7 @@
 
 ## 1. Concept
 
-Grid Wars is a real-time multi-agent grid game. Each student submits a **Painter bot** — a subclass of `BasePainter` — that autonomously moves around a shared grid and claims cells by color. The bot with the most cells at the end of the round wins. All bots run simultaneously in the same sketch; students never touch the engine, only their subclass.
+Grid Wars is a real-time multi-agent grid game. Each student submits a **bot** — a subclass of `Bot` — that autonomously moves around a shared grid and claims cells by color. The bot with the most cells at the end of the round wins. All bots run simultaneously in the same sketch; students never touch the engine, only their subclass.
 
 The pedagogical goal is identical to the Snake tournament: the base class does all the hard work, and students override exactly one method. The game has a very low floor (a random walker is a valid submission) and a high ceiling (BFS, Voronoi, influence maps, etc.).
 
@@ -74,7 +74,7 @@ The grid is passed (read-only by convention) into every `getNextMove()` call so 
 This is the only file students receive. Everything below `getNextMove()` is engine code they do not modify.
 
 ```javascript
-class BasePainter {
+class Bot {
 
   constructor(startX, startY, col, name) {
     this.x     = startX;   // current column
@@ -132,7 +132,7 @@ Five bots ship with the engine as examples and default tournament opponents. Ord
 Picks a direction uniformly at random every step. The control group baseline.
 
 ```javascript
-class RandomBot extends BasePainter {
+class RandomBot extends Bot {
   getNextMove(g, c, r) {
     return random(DIRS);
   }
@@ -144,7 +144,7 @@ class RandomBot extends BasePainter {
 Checks all four neighbors; moves to an unclaimed one if available, otherwise random. One local scan, no lookahead.
 
 ```javascript
-class GreedyBot extends BasePainter {
+class GreedyBot extends Bot {
   getNextMove(g, c, r) {
     let free = [];
     for (let d of DIRS) {
@@ -184,11 +184,11 @@ Implementation uses a flat `Uint8Array(cols * rows)` for the visited set (fast a
 setup()
   └── initGame()
         ├── reset grid to -1
-        ├── instantiate painters[], assign .id, claim starting cell
+        ├── instantiate bots[], assign .id, claim starting cell
 
 draw()  [runs ~60fps]
   ├── for STEPS iterations:
-  │     ├── painters.forEach(p => p.update())
+  │     ├── bots.forEach(p => p.update())
   │     └── stepCount++  →  if >= LIMIT: endGame()
   ├── drawGrid()
   ├── drawBots()
@@ -237,7 +237,7 @@ Three concentric circles to suggest a glowing dot:
 - Background: `rgb(18, 20, 36)`
 - Leaderboard sorted by score descending, updated every frame
 - Each entry: rank badge, bot name in its color, territory bar (pct of total cells), cell count and percentage
-- Footer: `extend BasePainter` label
+- Footer: `extend Bot` label
 
 ### 7.4 Bottom HUD (52px tall)
 
@@ -268,10 +268,10 @@ Student bots should be assigned colors from a pre-defined palette to ensure visi
 ## 8. Tournament Format (Suggested)
 
 1. **Submission:** Students submit a single `.js` file containing their subclass. No other files.
-2. **Integration:** Instructor pastes all student classes into the sketch and adds them to the `painters` array in `initGame()`, assigning starting positions.
+2. **Integration:** Instructor pastes all student classes into the sketch and adds them to the `bots` array in `initGame()`, assigning starting positions.
 3. **Rounds:** Run 3 rounds. Average score across rounds is the final score (mitigates random walk variance).
 4. **Round duration:** ~25 seconds at 60fps with current settings — fast enough to run several rounds in class.
-5. **Update order fairness:** Rotate the `painters` array order between rounds so every bot gets each position once across three rounds (if ≤ 3 bots; otherwise shuffle randomly).
+5. **Update order fairness:** Rotate the `bots` array order between rounds so every bot gets each position once across three rounds (if ≤ 3 bots; otherwise shuffle randomly).
 
 ---
 
@@ -285,7 +285,7 @@ Allow bots to reclaim opponent-owned cells by moving onto them. Would increase a
 
 ### 9.2 Student Bot Scaffolding File
 
-A separate `MyPainter.js` starter file with:
+A separate `MyBot.js` starter file with:
 
 - The class stub with `getNextMove()` pre-declared
 - Inline comments explaining each parameter
@@ -324,7 +324,7 @@ The p5.js version is the primary deliverable. A Processing port for students who
 territory-grab/
 ├── index.html              # entry point, loads p5.js and all scripts
 ├── sketch.js               # setup(), draw(), game loop, constants, DIRS
-├── BasePainter.js          # base class — the student API
+├── Bot.js          # base class — the student API
 ├── bots/
 │   ├── RandomBot.js
 │   ├── GreedyBot.js
@@ -336,7 +336,7 @@ territory-grab/
 │   ├── hud.js              # drawHUD()
 │   └── gameOver.js         # drawGameOver()
 └── student-bots/           # one file per student submission
-    └── MyPainter.js        # starter scaffold
+    └── MyBot.js        # starter scaffold
 ```
 
 For the single-file prototype (current state), all of this lives in one `<script>` block. Splitting into modules is recommended before opening submissions to students.

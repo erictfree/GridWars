@@ -2,13 +2,14 @@ import processing.sound.*;
 
 // ── Constants ────────────────────────────────────────────────
 final int NUM_THEMES = 2;
-final int TARGET_ROWS = 120;  // desired row count — COLS computed to fill width
+final int TARGET_ROWS = 150;  // desired row count — COLS computed to fill width
 final int SIDE_W = 250;       // scoreboard width
 final int BOT   = 52;
 final int MARGIN = 12;        // margin around play area
 final int CORNER = 16;        // rounded corner radius
 final int INSET  = 4;         // inner padding so cells don't overwrite border
-final int STEPS = 5;
+final int STEPS = 1;
+final int TOURNEY_STEPS = 2;  // extra steps per frame in tournament mode
 final int SPEED = 100;          // simulation speed % (1–100)
 final int FLASH_FRAMES = 8;    // cell claim flash duration (short and subtle)
 final int GAME_TIME_MS = 120000;  // 2 minutes per game
@@ -19,8 +20,11 @@ int COLS, ROWS, CELL, SIDE, LIMIT, TOP_MARGIN;
 // Timer
 int gameStartMillis;
 
-// Background image
+// Background images
 PImage bgImg;
+PImage beastBgImg;
+boolean beastMode = false;
+boolean beastSplash = false;
 
 // ── Retro arcade color palette ──────────────────────────────
 // Drawn from Pac-Man, Galaga, Donkey Kong, Dig Dug, Q*bert, etc.
@@ -79,6 +83,7 @@ PFont arcadeFont;
 void setup() {
   size(100, 100);  // placeholder — resized below
   pixelDensity(1);
+  frameRate(60);
 
   int winW = 1770;
   int winH = 1100;
@@ -98,8 +103,12 @@ void setup() {
   surface.setSize(winW, winH);
   surface.setLocation((displayWidth - winW) / 2, (displayHeight - winH) / 2);
 
-  // Load background
-  bgImg = loadImage("screen.png");
+  // Load backgrounds
+  bgImg = loadImage("header.png");
+  beastBgImg = loadImage("beastbackground.jpg");
+  if (beastBgImg != null) {
+    beastBgImg.resize(winW, winH);
+  }
 
   // Init directions
   UP    = new Direction( 0, -1);
@@ -138,6 +147,15 @@ void playRandomTheme() {
   }
   int pick = (int) random(1, NUM_THEMES + 1);  // 1–9
   music = new SoundFile(this, "theme" + pick + ".mp3");
+  music.loop();
+}
+
+void playTestMusic() {
+  if (music != null && music.isPlaying()) {
+    music.stop();
+  }
+  int pick = (int) random(1, 3);  // 1 or 2
+  music = new SoundFile(this, "test" + pick + ".mp3");
   music.loop();
 }
 
@@ -207,6 +225,66 @@ void initGame() {
   initEffects();
 }
 
+void initBeastMode() {
+  grid = new int[ROWS][COLS];
+  claimFrame = new int[ROWS][COLS];
+  for (int r = 0; r < ROWS; r++) {
+    java.util.Arrays.fill(grid[r], -1);
+  }
+
+  bots = new ArrayList<Bot>();
+
+  // Fresh palette and re-register all bots with new colors
+  randomizePalette();
+  registerTournamentBots();
+
+  int margin = 3;
+  int numBots = tournamentBotList.size();
+  boolean[][] taken = new boolean[ROWS][COLS];
+
+  for (int i = 0; i < numBots; i++) {
+    BotEntry entry = tournamentBotList.get(i);
+    int sx, sy;
+    do {
+      sx = margin + (int) random(COLS - 2 * margin);
+      sy = margin + (int) random(ROWS - 2 * margin);
+    } while (taken[sy][sx]);
+    taken[sy][sx] = true;
+
+    entry.alive = true;
+    entry.totalScore = 0;
+
+    Bot bot = entry.createInstance(sx, sy);
+    addBot(bot);
+  }
+
+  stepCount  = 0;
+  unclaimed  = COLS * ROWS - bots.size();
+  gameOver   = false;
+  confettiSpawned = false;
+  needsScreenshot = false;
+  gameState  = 1;  // jump straight to playing
+  stateTimer = 0;
+  gameStartMillis = 0;
+
+  scoreHistory = new int[bots.size()][HIST_LEN];
+  histCount = 0;
+  lastHistStep = 0;
+
+  currentLeaderId = -1;
+  leadChangeFrame = -999;
+  milestoneFrame = new int[bots.size()];
+  milestoneValue = new int[bots.size()];
+  milestoneX = new float[bots.size()];
+  milestoneY = new float[bots.size()];
+  timePressureIntensity = 0;
+
+  initEffects();
+  stopMusic();
+  music = new SoundFile(this, "beast.mp3");
+  music.loop();
+}
+
 void addBot(Bot p) {
   p.id = bots.size();
   bots.add(p);
@@ -221,10 +299,32 @@ void draw() {
   tourneyTimer++;
 
   // ── Background ────────────────────────────────────────────
-  if (bgImg != null) {
-    image(bgImg, 0, 0, width, height);
+  // Use background image on non-gameplay screens, black during gameplay
+  boolean showBg = false;
+
+  if (tournamentMode) {
+    // Background on bracket, countdown, results, champion — not during play
+    showBg = (tourneyPhase != 2);
+  } else {
+    // Background on test intro and game over — not during play
+    showBg = (gameState == 0) || (gameOver && !needsScreenshot);
+  }
+
+  if (showBg && beastMode && beastBgImg != null) {
+    image(beastBgImg, 0, 0);
+  } else if (showBg && bgImg != null) {
+    image(bgImg, 0, 0);
   } else {
     background(0);
+  }
+
+  // ── Beast mode splash ──────────────────────────────────────
+  if (beastSplash) {
+    if (beastBgImg != null) {
+      image(beastBgImg, 0, 0);
+    }
+    drawBeastSplash();
+    return;
   }
 
   // ── Tournament mode ───────────────────────────────────────
@@ -234,7 +334,7 @@ void draw() {
   }
 
   // ── Test mode: wait for space, then play ───────────────────
-  if (gameState == 0) {
+  if (gameState == 0 && !beastMode) {
     drawTestIntro();
     return;
   }
@@ -258,7 +358,8 @@ void runSimulation() {
     // Start timer on first simulation frame
     if (gameStartMillis == 0) gameStartMillis = millis();
 
-    int stepsThisFrame = max(1, round(STEPS * SPEED / 100.0));
+    int baseSteps = tournamentMode ? TOURNEY_STEPS : STEPS;
+    int stepsThisFrame = max(1, round(baseSteps * SPEED / 100.0));
     for (int s = 0; s < stepsThisFrame; s++) {
       GameInfo game = new GameInfo(grid, COLS, ROWS, bots, stepCount, LIMIT);
       for (Bot p : bots) {
@@ -379,7 +480,7 @@ void drawPlayArea() {
   }
   drawHUD();
 
-  // Grid-local sparkle effects (claim sparkles + ambient)
+  // Grid-local sparkle effects
   drawGridEffects();
 
   popMatrix();
@@ -457,30 +558,26 @@ void drawGrid() {
       int owner = grid[r][c];
 
       if (owner == -1) {
-        fill(0, 100);  // unclaimed — background shows through
+        fill(0);
       } else {
-        Bot ownerBot = bots.get(owner);
-        color base = ownerBot.col;
-
+        color base = bots.get(owner).col;
         fill(red(base), green(base), blue(base), 235);
       }
       rect(c * CELL, r * CELL, CELL, CELL);
 
-      // 3. Territory shimmer — rolling sparkle wave, stronger for higher scores
-      if (owner >= 0) {
-        Bot ownerBot = bots.get(owner);
-        float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
-        // Each bot gets its own wave offset based on id
+      // Territory shimmer — rolling sparkle wave, stronger for higher scores
+      if (owner >= 0 && ((r + c) % 2 == 0)) {  // checkerboard skip for perf
         float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
         if (wave > 0.5) {
-          float intensity = (wave - 0.5) * 2.0;  // 0–1
-          float shimmerAlpha = intensity * (20 + 50 * scorePct);
-          fill(255, shimmerAlpha);
+          Bot ownerBot = bots.get(owner);
+          float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
+          float intensity = (wave - 0.5) * 2.0;
+          fill(255, intensity * (20 + 50 * scorePct));
           rect(c * CELL, r * CELL, CELL, CELL);
         }
       }
 
-      // Subtle claim flash — brief brightening in the cell's own color
+      // Subtle claim flash
       if (owner >= 0 && claimFrame[r][c] > 0) {
         int age = frameCount - claimFrame[r][c];
         if (age < FLASH_FRAMES) {
@@ -492,28 +589,27 @@ void drawGrid() {
     }
   }
 
-  // Grid lines
-  stroke(255, 20);
-  strokeWeight(0.5);
-  for (int r = 0; r <= ROWS; r++) {
-    line(0, r * CELL, COLS * CELL, r * CELL);
+
+  // Grid lines — drawn as thin rects (faster than line() with stroke)
+  fill(255, 20);
+  for (int r = 1; r < ROWS; r++) {
+    rect(0, r * CELL, COLS * CELL, 1);
   }
-  for (int c = 0; c <= COLS; c++) {
-    line(c * CELL, 0, c * CELL, ROWS * CELL);
+  for (int c = 1; c < COLS; c++) {
+    rect(c * CELL, 0, 1, ROWS * CELL);
   }
 
-  // Territory borders
-  stroke(arcadeBlue, 80);
-  strokeWeight(1);
+  // Territory borders — drawn as thin rects
+  fill(red(arcadeBlue), green(arcadeBlue), blue(arcadeBlue), 80);
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
       int owner = grid[r][c];
       if (owner < 0) continue;
       if (c < COLS - 1 && grid[r][c + 1] >= 0 && grid[r][c + 1] != owner) {
-        line((c + 1) * CELL, r * CELL, (c + 1) * CELL, (r + 1) * CELL);
+        rect((c + 1) * CELL, r * CELL, 1, CELL);
       }
       if (r < ROWS - 1 && grid[r + 1][c] >= 0 && grid[r + 1][c] != owner) {
-        line(c * CELL, (r + 1) * CELL, (c + 1) * CELL, (r + 1) * CELL);
+        rect(c * CELL, (r + 1) * CELL, CELL, 1);
       }
     }
   }
@@ -538,10 +634,19 @@ Direction randomDir() {
 
 void keyPressed() {
   if (key == 'r' || key == 'R') {
-    if (tournamentMode) {
-      tournamentMode = false;
-    }
+    tournamentMode = false;
+    beastMode = false;
+    beastSplash = false;
     initGame();
+  }
+
+  // B = beast mode splash
+  if (key == 'b' || key == 'B') {
+    tournamentMode = false;
+    beastMode = true;
+    beastSplash = true;
+    stateTimer = 0;
+    stopMusic();
   }
 
   // T = start tournament mode
@@ -549,18 +654,31 @@ void keyPressed() {
     tournamentMode = true;
     stateTimer = 0;
     tourneyTimer = 0;
+    stopMusic();
     initTournament();
   }
 
-  // SPACE = start test / restart after game over / advance tournament
-  if (key == ' ' && !tournamentMode && gameState == 0) {
-    gameState = 1;  // start playing
-    playRandomTheme();
+  // SPACE = beast mode launch
+  if (key == ' ' && beastSplash) {
+    beastSplash = false;
+    initBeastMode();
     return;
   }
-  if (key == ' ' && !tournamentMode && gameOver) {
+
+  // SPACE = start test / restart after game over / advance tournament
+  if (key == ' ' && !tournamentMode && !beastMode && gameState == 0) {
+    gameState = 1;  // start playing
+    playTestMusic();
+    return;
+  }
+  if (key == ' ' && beastMode && gameOver) {
+    initBeastMode();
+    return;
+  }
+  if (key == ' ' && !tournamentMode && !beastMode && gameOver) {
     initGame();
     gameState = 1;  // jump straight to playing
+    playTestMusic();
     return;
   }
   if (key == ' ' && tournamentMode) {

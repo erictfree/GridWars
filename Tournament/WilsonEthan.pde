@@ -1,4 +1,4 @@
-class WilsonEthan extends BasePainter {
+class WilsonEthan extends Bot {
   Direction[] _cw;
   int _di = 0, _steps = 0, _limit = 1, _turns = 0;
   WilsonEthan(int x, int y, color c, String name) { super(x, y, c, name); }

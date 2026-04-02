@@ -8,20 +8,20 @@ You don't control your bot in real time. You write the **brain** — a single me
 
 ## What You're Building
 
-You are writing a **subclass** of `BasePainter`. This is the core object-oriented concept at work:
+You are writing a **subclass** of `Bot`. This is the core object-oriented concept at work:
 
-- `BasePainter` is the **base class** — it knows how to move, render, and interact with the grid.
-- Your class **extends** `BasePainter` — it inherits all of that behavior for free.
+- `Bot` is the **base class** — it knows how to move, render, and interact with the grid.
+- Your class **extends** `Bot` — it inherits all of that behavior for free.
 - You **override** one method — `getNextMove()` — to replace the default random walk with your own strategy.
 
 That's inheritance in action: reuse what exists, replace what you want to change.
 
 ## Your File
 
-You submit **one file**. Start with `MyPainter.pde` and rename the class:
+You submit **one file**. Start with `MyBot.pde` and rename the class:
 
 ```java
-class EricBot extends BasePainter {
+class EricBot extends Bot {
 
   EricBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
@@ -61,7 +61,7 @@ This is called once per simulation step. You look at the world, you pick a direc
 | `this.y`      | Your current row |
 | `this.id`     | Your player ID (matches values in the grid) |
 | `this.score`  | How many cells you've claimed so far |
-| `grid[r][c]`  | Who owns cell at row `r`, column `c` (-1 = nobody) |
+| `grid[r][c]`  | The bot ID that claimed this cell, or `-1` if unclaimed. Compare to `this.id` to check if it's yours. |
 | `UP, DOWN, LEFT, RIGHT` | Direction constants you can return |
 | `DIRS`        | Array of all four directions |
 | `randomDir()` | Helper that returns a random direction |
@@ -80,7 +80,8 @@ row 2  [   0  ] [   0  ] [  -1  ] ...
 ```
 
 - `-1` means the cell is **unclaimed** — move there to score a point.
-- Any other number is a **player ID** — that cell is taken. Moving there is legal but doesn't score.
+- `0`, `1`, `2`, etc. is the **bot ID** of whoever claimed it. Your own ID is `this.id`. So `grid[r][c] == this.id` means you own that cell. Any other number means a competitor owns it.
+- Moving onto a claimed cell (yours or anyone's) is legal but doesn't score.
 
 **Important:** It's `grid[y][x]`, not `grid[x][y]`. Row first, column second.
 
@@ -123,7 +124,7 @@ if (abs(targetX - this.x) > abs(targetY - this.y)) {
 Your class can have instance variables that persist between calls. Track where you've been, plan a path, remember a strategy.
 
 ```java
-class SmartBot extends BasePainter {
+class SmartBot extends Bot {
   boolean goingRight = true;
 
   SmartBot(int startX, int startY, color col, String name) {
@@ -147,10 +148,10 @@ Count unclaimed cells in different regions. Steer toward the emptiest area. Avoi
 ## The OO Concepts in Play
 
 ### Inheritance
-Your class **extends** `BasePainter`. You get movement, rendering, scoring, and grid interaction without writing any of it. You only write the decision-making.
+Your class **extends** `Bot`. You get movement, rendering, scoring, and grid interaction without writing any of it. You only write the decision-making.
 
 ### Method Overriding
-`BasePainter` has a `getNextMove()` that returns a random direction. Your class **overrides** it with a smarter version. The game engine calls `getNextMove()` — it doesn't know or care which version runs. That's **polymorphism**.
+`Bot` has a `getNextMove()` that returns a random direction. Your class **overrides** it with a smarter version. The game engine calls `getNextMove()` — it doesn't know or care which version runs. That's **polymorphism**.
 
 ### Encapsulation
 You can't see or modify the engine code. You interact through a clean interface: the grid array, your position, and the direction you return. The engine handles everything else.
@@ -183,6 +184,6 @@ this.trailLength = 25;     // trail length (0 = off, max 40)
 
 ## What to Submit
 
-One `.pde` file containing your class. Rename it from `MyPainter` to something unique (your name, a creative name — whatever you want). Make sure it extends `BasePainter` and has the constructor that calls `super()`.
+One `.pde` file containing your class. Rename it from `MyBot` to something unique (your name, a creative name — whatever you want). Make sure it extends `Bot` and has the constructor that calls `super()`.
 
 Good luck. Claim everything.

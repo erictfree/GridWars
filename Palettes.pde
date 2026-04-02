@@ -17,9 +17,9 @@ void randomizePalette() {
     float h = hue(PALETTE[i]);
     float s = saturation(PALETTE[i]);
     float b = brightness(PALETTE[i]);
-    // Force full saturation, high brightness
-    s = max(s, 90);
-    b = max(b, 85);
+    // Force full saturation and full brightness
+    s = 100;
+    b = 100;
     PALETTE[i] = color(h, s, b);
   }
   colorMode(RGB, 255);

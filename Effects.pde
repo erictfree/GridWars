@@ -36,13 +36,13 @@ class Particle {
       // Sparkle — bright cross that fades and shrinks
       float s = sz * t;
       float a = 255 * t;
-      stroke(c, a);
-      strokeWeight(1);
-      line(x - s, y, x + s, y);
-      line(x, y - s, x, y + s);
       noStroke();
+      fill(c, a);
+      rect(x - s, y - 1, s * 2, 2);
+      rect(x - 1, y - s, 2, s * 2);
       fill(255, a * 0.8);
-      ellipse(x, y, s * 0.6, s * 0.6);
+      float d = s * 0.4;
+      rect(x - d, y - d, d * 2, d * 2);
       return;
     }
 
@@ -53,7 +53,7 @@ class Particle {
       float s = sz * (0.4 + 0.6 * pulse);
       noStroke();
       fill(c, a);
-      ellipse(x, y, s, s);
+      rect(x - s / 2, y - s / 2, s, s);
       return;
     }
 
@@ -77,11 +77,10 @@ void initEffects() {
 // ── Claim sparkle — candy crush style burst when a cell is claimed ──
 
 void spawnClaimSparkle(float cx, float cy, color col) {
-  // Small burst of 3-5 sparkle particles
-  int count = 3 + (int) random(3);
+  int count = 4 + (int) random(3);
   for (int i = 0; i < count; i++) {
     float angle = random(TWO_PI);
-    float speed = random(0.5, 2.0);
+    float speed = random(0.8, 2.5);
     float vx = cos(angle) * speed;
     float vy = sin(angle) * speed;
     color sc;
@@ -89,7 +88,7 @@ void spawnClaimSparkle(float cx, float cy, color col) {
     if (roll < 0.5) sc = lerpColor(col, color(255), 0.6);
     else if (roll < 0.8) sc = color(255, 255, 200);
     else sc = color(255);
-    Particle p = new Particle(cx, cy, vx, vy, sc, random(10, 20), random(3, 6));
+    Particle p = new Particle(cx, cy, vx, vy, sc, random(15, 30), random(4, 8));
     p.type = 1;
     p.friction = 0.9;
     particles.add(p);
@@ -210,9 +209,9 @@ void drawGridEffects() {
       p.show();
     }
   }
-  drawMilestonePopups();
   drawCrownIndicator();
   drawProximitySparks();
+  drawMilestonePopups();
 }
 
 // ── 1. Score milestone floating popups ──────────────────────
@@ -253,6 +252,7 @@ void drawMilestonePopups() {
 // ── 6. Crown indicator over leader ──────────────────────────
 
 void drawCrownIndicator() {
+  if (!tournamentMode) return;
   if (currentLeaderId < 0 || currentLeaderId >= bots.size()) return;
   Bot leader = bots.get(currentLeaderId);
   float cx = leader.x * CELL + CELL / 2.0;
@@ -270,7 +270,7 @@ void drawCrownIndicator() {
   float pulse = 0.7 + 0.3 * sin(frameCount * 0.15);
 
   // How many grid cells to show across the diameter
-  int viewCells = 7;
+  int viewCells = 11;
   float magCell = (radius * 2.0) / viewCells;  // size of each magnified cell
 
   // Clip to circle using a mask approach: draw into the circle area
@@ -346,14 +346,19 @@ void drawCrownIndicator() {
   }
   noStroke();
 
-  // "#1" label at top of bubble
-  fill(0, 160);
-  noStroke();
-  rect(bubbleX - 18, bubbleY - radius - 18, 36, 16, 4);
-  fill(255, 255, 0, 230 * pulse);
-  textSize(11);
+  // Leader name label above bubble
+  String leaderName = displayName(leader.name);
+  textSize(14);
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  text("#1", bubbleX, bubbleY - radius - 11);
+  float labelW = textWidth(leaderName) + 16;
+  float labelY = bubbleY - radius - 14;
+  fill(0, 180);
+  noStroke();
+  rect(bubbleX - labelW / 2, labelY - 10, labelW, 20, 4);
+  fill(0, 100);
+  text(leaderName, bubbleX + 1, labelY + 1);
+  fill(255, 255, 255, 230 * pulse);
+  text(leaderName, bubbleX, labelY);
 }
 
 // ── 5. Proximity sparks between nearby bots ─────────────────

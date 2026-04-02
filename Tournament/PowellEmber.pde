@@ -1,4 +1,4 @@
-class PowellEmber extends BasePainter {
+class PowellEmber extends Bot {
   PowellEmber(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     ArrayList<Direction> free = getFreeDirs();

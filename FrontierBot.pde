@@ -1,4 +1,4 @@
-class FrontierBot extends BasePainter {
+class FrontierBot extends Bot {
 
   FrontierBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);

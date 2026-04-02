@@ -1,4 +1,4 @@
-class PattersonLark extends BasePainter {
+class PattersonLark extends Bot {
   PattersonLark(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     int cols = game.cols, rows = game.rows, total = cols * rows;

@@ -4,13 +4,13 @@
 //  Rename this class and implement your strategy in getNextMove().
 //
 //  The GameInfo object gives you access to the entire game world:
-//    game.grid[row][col]            — raw grid (-1 = unclaimed, N = owner)
+//    game.grid[row][col]            — bot ID that claimed this cell, or -1 if unclaimed
 //    game.cols, game.rows           — grid dimensions
-//    game.isUnclaimed(row, col)     — is this cell free?
-//    game.isClaimed(row, col)       — is this cell taken?
-//    game.isMine(row, col, this.id) — do I own this cell?
-//    game.inBounds(row, col)        — is this on the grid?
-//    game.getOwner(row, col)        — who owns it?
+//    game.isUnclaimed(row, col)     — is this cell free to claim?
+//    game.isClaimed(row, col)       — has any bot claimed this cell?
+//    game.isMine(row, col, this.id) — did I claim this cell?
+//    game.inBounds(row, col)        — is this coordinate on the grid?
+//    game.getOwner(row, col)        — returns bot ID of owner, -1 if unclaimed
 //    game.countUnclaimed()          — total free cells
 //    game.getNearestBot(x, y, id)   — find closest opponent
 //    game.getProgress()             — 0.0 → 1.0 game progress
@@ -27,9 +27,9 @@
 //  Directions:     UP, DOWN, LEFT, RIGHT, DIRS, randomDir()
 // ─────────────────────────────────────────────────────────────
 
-class MyPainter extends BasePainter {
+class MyBot extends Bot {
 
-  MyPainter(int startX, int startY, color col, String name) {
+  MyBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
 
     // ── Customize your bot's look ──────────────────────────
@@ -59,7 +59,7 @@ class MyPainter extends BasePainter {
     // }
 
     // ── Example 4: Avoid the nearest opponent ──
-    // BasePainter enemy = game.getNearestBot(this.x, this.y, this.id);
+    // Bot enemy = game.getNearestBot(this.x, this.y, this.id);
     // if (enemy != null) {
     //   int dx = this.x - enemy.x;  // move AWAY
     //   int dy = this.y - enemy.y;

@@ -1,4 +1,4 @@
-class WilliamsNoah extends BasePainter {
+class WilliamsNoah extends Bot {
   Direction[] _cw;
   int _di = 0, _steps = 0, _limit = 1, _turns = 0;
   WilliamsNoah(int x, int y, color c, String name) { super(x, y, c, name); }

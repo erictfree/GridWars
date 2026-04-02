@@ -6,12 +6,12 @@ class GameInfo {
 
   int[][] grid;                    // grid[row][col]: -1 = unclaimed, N = owner ID
   int cols, rows;                  // grid dimensions
-  ArrayList<BasePainter> bots;     // all bots in the game
+  ArrayList<Bot> bots;     // all bots in the game
   int step;                        // current simulation step
   int totalSteps;                  // step limit
 
   GameInfo(int[][] grid, int cols, int rows,
-           ArrayList<BasePainter> bots, int step, int totalSteps) {
+           ArrayList<Bot> bots, int step, int totalSteps) {
     this.grid       = grid;
     this.cols       = cols;
     this.rows       = rows;
@@ -73,10 +73,10 @@ class GameInfo {
   }
 
   /** Find the nearest bot to (x, y) that isn't myId. Returns null if alone. */
-  BasePainter getNearestBot(int x, int y, int myId) {
-    BasePainter nearest = null;
+  Bot getNearestBot(int x, int y, int myId) {
+    Bot nearest = null;
     float bestDist = Float.MAX_VALUE;
-    for (BasePainter b : bots) {
+    for (Bot b : bots) {
       if (b.id == myId) continue;
       float d = abs(b.x - x) + abs(b.y - y);  // Manhattan distance
       if (d < bestDist) {
@@ -100,7 +100,7 @@ class GameInfo {
   }
 
   /** Look up a bot by its ID. Returns null if not found. */
-  BasePainter getBot(int id) {
+  Bot getBot(int id) {
     if (id >= 0 && id < bots.size()) return bots.get(id);
     return null;
   }

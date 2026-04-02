@@ -295,7 +295,7 @@ void rebuildNextRound() {
 
 void drawBracketView() {
   noStroke();
-  fill(0, 190);
+  fill(0, 220);
   rect(0, 0, width, height);
 
   float cx = width / 2.0;
@@ -305,7 +305,7 @@ void drawBracketView() {
 
   // Title
   fill(arcadeBlue);
-  textSize(14);
+  textSize(16);
   textAlign(PConstants.CENTER, PConstants.TOP);
   text("TOURNAMENT BRACKET", cx, 12);
 
@@ -358,20 +358,20 @@ void drawBracketView() {
 
       // Box fill
       if (h.completed) {
-        fill(0, 180, 80, 40);
+        fill(0, 180, 80, 60);
       } else if (isThisHeat) {
-        fill(255, 255, 0, 50);
+        fill(255, 255, 0, 60);
       } else {
-        fill(20, 20, 35);
+        fill(20, 25, 50, 200);
       }
       noStroke();
       rect(bx, by, boxW, boxH, 4);
 
       // Box border
       color borderCol;
-      if (h.completed) borderCol = color(0, 200, 100);
+      if (h.completed) borderCol = color(0, 220, 120);
       else if (isThisHeat) borderCol = color(255, 255, 0);
-      else borderCol = color(50, 50, 70);
+      else borderCol = color(80, 100, 140);
       stroke(borderCol);
       strokeWeight(1);
       noFill();
@@ -392,13 +392,13 @@ void drawBracketView() {
         }
       } else if (roundActive) {
         // Current round — show bot count
-        fill(isThisHeat ? color(255, 255, 0) : color(100));
+        fill(isThisHeat ? color(255, 255, 0) : color(180));
         textSize(min(9, boxH * 0.45));
         textAlign(PConstants.CENTER, PConstants.CENTER);
         text(h.bots.size() + " BOTS", bx + boxW / 2, byCtr);
       } else {
         // Future round — show "?"
-        fill(40);
+        fill(100);
         textSize(min(10, boxH * 0.5));
         textAlign(PConstants.CENTER, PConstants.CENTER);
         text("?", bx + boxW / 2, byCtr);
@@ -444,23 +444,23 @@ void drawBracketView() {
       noStroke();
 
       // "TOP N" label
-      fill(roundDone ? color(0, 200, 100, 80) : color(50));
-      textSize(5);
+      fill(roundDone ? color(0, 220, 120, 120) : color(120));
+      textSize(6);
       textAlign(PConstants.CENTER, PConstants.CENTER);
       text("TOP " + rd.advanceCount, midX, bracketT - 6);
     }
 
     // Round label + bot count below column
-    fill(roundActive ? color(255, 255, 0) : (roundDone ? color(0, 200, 100) : color(50)));
-    textSize(7);
+    fill(roundActive ? color(255, 255, 0) : (roundDone ? color(0, 220, 120) : color(120)));
+    textSize(8);
     textAlign(PConstants.CENTER, PConstants.TOP);
     text(rd.label, colX + colW / 2, bracketB + 4);
 
     // Show total bots in this round
     int roundBots = 0;
     for (Heat h : rd.heats) roundBots += h.bots.size();
-    fill(60);
-    textSize(6);
+    fill(120);
+    textSize(7);
     text(roundBots + " bots", colX + colW / 2, bracketB + 16);
   }
 
@@ -535,53 +535,74 @@ void drawBracketView() {
 }
 
 void drawHeatResults() {
-  // Keep game board visible behind results
-  drawPlayArea();
-
-  // Darker overlay for readability
-  noStroke();
-  fill(0, 190);
-  rect(0, 0, width, height);
-
-  // CRT scanlines
-  for (int y = 0; y < height; y += 4) {
-    fill(0, 12);
-    rect(0, y, width, 2);
-  }
+  float cx = width / 2.0;
+  float cy = height / 2.0;
+  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.08);
+  float fastPulse = 0.5 + 0.5 * sin(tourneyTimer * 0.15);
 
   TournamentRound round = rounds.get(currentRound);
   Heat heat = round.heats.get(currentHeat);
 
-  // Center on game area
-  int gridW = COLS * CELL + INSET * 2;
-  float cx = MARGIN + gridW / 2.0;
-  int gridH = ROWS * CELL + INSET * 2;
-  float gameTop = TOP_MARGIN + MARGIN;
-  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.08);
+  // ── Dark overlay ──
+  noStroke();
+  fill(0, 200);
+  rect(0, 0, width, height);
 
-  // Header — big neon with glow
-  textAlign(PConstants.CENTER, PConstants.TOP);
+  // ── CRT scanlines ──
+  for (int y = 0; y < height; y += 3) {
+    fill(0, 20);
+    rect(0, y, width, 1);
+  }
+
+  // ── Panel ──
+  float panelW = 620;
+  float panelH = min(height * 0.85, 80 + heat.bots.size() * 36 + 80);
+  float panelX = cx - panelW / 2;
+  float panelY = cy - panelH / 2;
+
+  for (int layer = 3; layer >= 0; layer--) {
+    fill(0, 200, 255, 2 + layer * 2);
+    rect(panelX - layer * 8, panelY - layer * 8,
+         panelW + layer * 16, panelH + layer * 16, 20 + layer * 4);
+  }
+  fill(0, 210);
+  rect(panelX, panelY, panelW, panelH, 16);
+  noFill();
+  stroke(arcadeBlue, 100 + 60 * pulse);
+  strokeWeight(2);
+  rect(panelX, panelY, panelW, panelH, 16);
+  noStroke();
+
+  // ── Header ──
+  textAlign(PConstants.CENTER, PConstants.CENTER);
+  float headerY = panelY + 40;
+
+  fill(arcadeBlue, 15);
+  textSize(40);
+  text("HEAT RESULTS", cx + 2, headerY + 2);
+  text("HEAT RESULTS", cx - 2, headerY - 2);
+
   fill(arcadeBlue, 30);
   textSize(38);
-  text("HEAT RESULTS", cx + 2, gameTop + gridH * 0.04 + 2);
+  text("HEAT RESULTS", cx, headerY);
+
   fill(arcadeBlue, 220 + 35 * pulse);
   textSize(36);
-  text("HEAT RESULTS", cx, gameTop + gridH * 0.04);
+  text("HEAT RESULTS", cx, headerY);
 
-  // Neon divider
-  float divY = gameTop + gridH * 0.11;
+  // ── Divider ──
+  float divY = headerY + 28;
   for (int layer = 2; layer >= 0; layer--) {
-    stroke(arcadeBlue, (3 - layer) * 30 * pulse);
-    strokeWeight(1 + layer * 2);
-    line(cx - 280, divY, cx + 280, divY);
+    stroke(arcadeBlue, (3 - layer) * 25 * pulse);
+    strokeWeight(1 + layer);
+    line(cx - 250, divY, cx + 250, divY);
   }
   noStroke();
 
-  // Results list
-  float startY = gameTop + gridH * 0.14;
-  float rowH = min(38, (gridH * 0.65) / heat.bots.size());
+  // ── Results list ──
+  float startY = divY + 16;
+  float rowH = min(36, (panelY + panelH - 80 - startY) / heat.bots.size());
 
-  // Animate rows appearing
   int rowsToShow = min(heat.bots.size(), (int)(tourneyTimer * heat.bots.size() / 40.0) + 1);
 
   for (int i = 0; i < rowsToShow; i++) {
@@ -589,143 +610,211 @@ void drawHeatResults() {
     float by = startY + i * rowH;
     boolean advanced = i < round.advanceCount;
 
-    // Row background for advancing bots
+    // Row highlight for advancing bots
     if (advanced) {
-      fill(255, 255, 0, 8);
+      fill(255, 255, 0, 10);
       noStroke();
-      rect(cx - 200, by - 1, 400, rowH - 2, 4);
+      rect(panelX + 20, by - 1, panelW - 40, rowH - 2, 4);
     }
 
-    // Rank — big and bold
-    fill(advanced ? color(255, 255, 0) : color(60));
+    // Rank
+    fill(advanced ? color(255, 255, 0) : color(70));
     textSize(16);
     textAlign(PConstants.RIGHT, PConstants.TOP);
-    text(str(i + 1), cx - 110, by + 4);
+    text(str(i + 1), cx - 140, by + 4);
 
-    // Swatch with glow
+    // Swatch
     color swatchCol = advanced ? b.col : color(red(b.col) * 0.3, green(b.col) * 0.3, blue(b.col) * 0.3);
     if (advanced) {
       fill(red(b.col), green(b.col), blue(b.col), 40);
       noStroke();
-      rect(cx - 100, by + 2, 20, 20, 2);
+      rect(cx - 126, by + 2, 20, 20, 2);
     }
     fill(swatchCol);
-    rect(cx - 98, by + 4, 16, 16);
+    rect(cx - 124, by + 4, 16, 16);
 
-    // Name — white for advancing, dim for eliminated
-    fill(advanced ? color(255) : color(60));
-    textSize(14);
+    // Name
+    fill(advanced ? color(255) : color(70));
+    textSize(15);
     textAlign(PConstants.LEFT, PConstants.TOP);
-    text(displayName(b.name), cx - 76, by + 4);
+    text(displayName(b.name), cx - 100, by + 4);
 
     // Score
-    fill(advanced ? color(255) : color(60));
-    textSize(14);
+    fill(advanced ? color(255) : color(70));
+    textSize(15);
     textAlign(PConstants.RIGHT, PConstants.TOP);
-    text(nfc(heat.finalScores[i]), cx + 140, by + 4);
+    text(nfc(heat.finalScores[i]), cx + 120, by + 4);
 
-    // ADVANCE / OUT — bold labels
+    // ADVANCE / OUT
     if (advanced) {
       fill(0, 255, 128);
       textSize(11);
       textAlign(PConstants.LEFT, PConstants.TOP);
-      text("ADVANCE", cx + 152, by + 6);
+      text("ADVANCE", cx + 132, by + 6);
     } else {
       fill(255, 0, 0, 150);
       textSize(11);
       textAlign(PConstants.LEFT, PConstants.TOP);
-      text("OUT", cx + 152, by + 6);
+      text("OUT", cx + 132, by + 6);
     }
   }
 
-  // Next prompt — big flashing
+  // ── "PRESS SPACE" ──
+  float promptY = panelY + panelH - 35;
   boolean blink = (tourneyTimer % 45) < 30;
   if (blink) {
-    fill(255, 255, 0, 30);
+    fill(255, 255, 0, 25);
     textSize(24);
     textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.90);
-    fill(255, 255, 0, 200 + 55 * pulse);
+    text("PRESS SPACE TO CONTINUE", cx, promptY);
+    fill(255, 255, 0, 180 + 75 * fastPulse);
     textSize(22);
-    text("PRESS SPACE TO CONTINUE", cx, gameTop + gridH * 0.90);
+    text("PRESS SPACE TO CONTINUE", cx, promptY);
   }
 }
 
 void drawChampionScreen() {
+  float cx = width / 2.0;
+  float cy = height / 2.0;
+  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.08);
+  float fastPulse = 0.5 + 0.5 * sin(tourneyTimer * 0.15);
+  float t = tourneyTimer * 0.05;
+
+  // ── Dark overlay ──
   noStroke();
   fill(0, 180);
   rect(0, 0, width, height);
 
-  // CRT scanlines
-  for (int y = 0; y < height; y += 4) {
-    fill(0, 12);
-    rect(0, y, width, 2);
+  // ── CRT scanlines ──
+  for (int y = 0; y < height; y += 3) {
+    fill(0, 20);
+    rect(0, y, width, 1);
   }
 
-  float cx = width / 2.0;
-  float cy = height / 2.0;
-  float pulse = 0.7 + 0.3 * sin(tourneyTimer * 0.1);
-  float fastPulse = 0.5 + 0.5 * sin(tourneyTimer * 0.25);
-
-  // "CHAMPION" — massive neon with glow layers
-  boolean blink = (tourneyTimer % 40) < 30;
-  if (blink) {
-    textAlign(PConstants.CENTER, PConstants.CENTER);
-
-    // Glow layers
-    fill(255, 255, 0, 15);
-    textSize(64);
-    text("CHAMPION", cx + 3, cy - 80 + 3);
-    text("CHAMPION", cx - 3, cy - 80 - 3);
-
-    fill(255, 255, 0, 30);
-    textSize(62);
-    text("CHAMPION", cx, cy - 80);
-
-    // Main
-    fill(255, 255, 0, 220 + 35 * pulse);
-    textSize(60);
-    text("CHAMPION", cx, cy - 80);
+  // ── Continuous confetti ──
+  if (tourneyTimer % 3 == 0) {
+    color champCol = champion != null ? champion.col : color(255, 215, 0);
+    for (int i = 0; i < 5; i++) {
+      float x = random(width);
+      float y = random(-50, -10);
+      float vx = random(-1.5, 1.5);
+      float vy = random(2, 5);
+      color c;
+      float roll = random(1);
+      if (roll < 0.3) c = champCol;
+      else if (roll < 0.5) c = color(255, 215, 0);
+      else if (roll < 0.65) c = color(255, 0, 128);
+      else if (roll < 0.8) c = color(0, 255, 255);
+      else c = color(255);
+      Particle p = new Particle(x, y, vx, vy, c, random(140, 220), random(3, 7));
+      p.gravity = 0.03;
+      p.friction = 0.998;
+      particles.add(p);
+    }
   }
+
+  // ── Panel ──
+  float panelW = 700;
+  float panelH = 380;
+  float panelX = cx - panelW / 2;
+  float panelY = cy - panelH / 2 - 10;
+
+  color champCol = champion != null ? champion.col : color(255, 215, 0);
+  for (int layer = 3; layer >= 0; layer--) {
+    fill(red(champCol), green(champCol), blue(champCol), 3 + layer * 2);
+    rect(panelX - layer * 8, panelY - layer * 8,
+         panelW + layer * 16, panelH + layer * 16, 20 + layer * 4);
+  }
+  fill(0, 210);
+  rect(panelX, panelY, panelW, panelH, 16);
+  noFill();
+  stroke(champCol, 120 + 80 * pulse);
+  strokeWeight(2);
+  rect(panelX, panelY, panelW, panelH, 16);
+  noStroke();
+
+  // ── "TOURNAMENT" — top label ──
+  textAlign(PConstants.CENTER, PConstants.CENTER);
+  float labelY = panelY + 45;
+
+  fill(arcadeBlue, 25);
+  textSize(22);
+  text("T O U R N A M E N T", cx, labelY);
+  fill(arcadeBlue, 200 + 55 * fastPulse);
+  textSize(20);
+  text("T O U R N A M E N T", cx, labelY);
+
+  // ── Top divider ──
+  float divY1 = labelY + 25;
+  for (int layer = 2; layer >= 0; layer--) {
+    stroke(arcadeBlue, (3 - layer) * 25 * pulse);
+    strokeWeight(1 + layer);
+    line(cx - 250, divY1, cx + 250, divY1);
+  }
+  noStroke();
+
+  // ── "CHAMPION" — huge golden neon ──
+  float champY = panelY + panelH * 0.38;
+
+  fill(255, 215, 0, 12);
+  textSize(82);
+  text("CHAMPION", cx + 3, champY + 3);
+  text("CHAMPION", cx - 3, champY - 3);
+
+  fill(255, 215, 0, 30);
+  textSize(80);
+  text("CHAMPION", cx, champY);
+
+  float shimmer = 200 + 55 * sin(t * 2);
+  fill(255, 215, 0, shimmer);
+  textSize(78);
+  text("CHAMPION", cx, champY);
+
+  fill(255, 255, 240, 80 + 40 * fastPulse);
+  textSize(76);
+  text("CHAMPION", cx, champY);
 
   if (champion != null) {
-    // Neon dividers — white/gold
+    // ── Bottom divider ──
+    float divY2 = champY + 55;
     for (int layer = 2; layer >= 0; layer--) {
-      stroke(255, 255, 200, (3 - layer) * 30 * pulse);
-      strokeWeight(1 + layer * 2);
-      line(cx - 300, cy - 35, cx + 300, cy - 35);
+      stroke(255, 215, 0, (3 - layer) * 20 * pulse);
+      strokeWeight(1 + layer);
+      line(cx - 280, divY2, cx + 280, divY2);
     }
     noStroke();
 
-    // Winner name — huge, bright white with glow
-    textAlign(PConstants.CENTER, PConstants.CENTER);
+    // ── Champion name ──
+    float nameY = divY2 + 50;
 
-    fill(255, 255, 255, 30);
+    fill(0, 200);
+    textSize(44);
+    text(displayName(champion.name), cx + 2, nameY + 2);
+
+    fill(red(champion.col), green(champion.col), blue(champion.col), 30);
+    textSize(44);
+    text(displayName(champion.name), cx + 2, nameY + 2);
+    text(displayName(champion.name), cx - 2, nameY - 2);
+
+    fill(champion.col);
     textSize(42);
-    text(displayName(champion.name), cx + 2, cy + 15 + 2);
-    text(displayName(champion.name), cx - 2, cy + 15 - 2);
+    text(displayName(champion.name), cx, nameY);
 
-    fill(255, 255, 255, 240);
-    textSize(40);
-    text(displayName(champion.name), cx, cy + 15);
-
-    // Score
-    fill(255, 200);
-    textSize(20);
-    text("TOTAL SCORE: " + nfc(champion.totalScore), cx, cy + 70);
-
-    // Pulsing ring around the name
-    noFill();
-    stroke(255, 255, 200, 80 * pulse);
-    strokeWeight(2);
-    float ringW = 500 * (0.95 + 0.05 * fastPulse);
-    float ringH = 80 * (0.95 + 0.05 * fastPulse);
-    ellipse(cx, cy + 15, ringW, ringH);
-    noStroke();
+    // ── Score ──
+    float scoreY = nameY + 40;
+    fill(255, 220);
+    textSize(18);
+    text("TOTAL SCORE: " + nfc(champion.totalScore), cx, scoreY);
   }
 
-  fill(arcadeBlue, 80);
-  textSize(9);
-  textAlign(PConstants.CENTER, PConstants.CENTER);
-  text("PRESS R TO RESTART", cx, height * 0.90);
+  // ── "PRESS R" ──
+  float promptY = panelY + panelH - 35;
+  if ((tourneyTimer % 50) < 35) {
+    fill(255, 255, 0, 25);
+    textSize(22);
+    text("PRESS R TO RESTART", cx, promptY);
+    fill(255, 255, 0, 180 + 75 * fastPulse);
+    textSize(20);
+    text("PRESS R TO RESTART", cx, promptY);
+  }
 }

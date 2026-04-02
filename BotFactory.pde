@@ -2,7 +2,7 @@
 // Maps class names to instances. Add new student bots here.
 // Processing doesn't support reflection, so this is a manual lookup.
 
-BasePainter createStudentBot(String className, int x, int y, color c) {
+Bot createStudentBot(String className, int x, int y, color c) {
   switch (className) {
     // ── Test bots ───────────────────────────────────────────
     case "SmithEmma":       return new SmithEmma(x, y, c, className);

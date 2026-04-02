@@ -1,4 +1,4 @@
-class GreedyBot extends BasePainter {
+class GreedyBot extends Bot {
 
   GreedyBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);

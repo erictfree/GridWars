@@ -115,7 +115,7 @@ class Bot {
       // Sparkle on claim
       float cx = x * CELL + CELL / 2.0;
       float cy = y * CELL + CELL / 2.0;
-      if (random(1) < 0.15) {
+      if (random(1) < 0.3) {
         spawnClaimSparkle(cx, cy, col);
       }
       // Streak burst every 20 consecutive claims
@@ -184,9 +184,14 @@ class Bot {
       text(label, cx, cy - 1);
     }
 
-    fill(col);
-    textSize(max(8, CELL * 0.8));
+    // Name with shadow for readability
+    float nameSz = max(9, CELL * 1.1);
+    float nameY = cy - CELL * 1.6 * gs;
+    textSize(nameSz);
     textAlign(PConstants.CENTER, PConstants.BOTTOM);
-    text(displayName(name), cx, cy - CELL * 1.4 * gs);
+    fill(0, 160);
+    text(displayName(name), cx + 1, nameY + 1);
+    fill(col);
+    text(displayName(name), cx, nameY);
   }
 }

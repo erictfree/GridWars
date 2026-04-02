@@ -1,4 +1,4 @@
-class JacksonZara extends BasePainter {
+class JacksonZara extends Bot {
   Direction[] _cw;
   int _di = 0, _steps = 0, _limit = 1, _turns = 0;
   JacksonZara(int x, int y, color c, String name) { super(x, y, c, name); }

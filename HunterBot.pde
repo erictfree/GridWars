@@ -1,4 +1,4 @@
-class HunterBot extends BasePainter {
+class HunterBot extends Bot {
 
   HunterBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);

@@ -1,4 +1,4 @@
-class WestJasmine extends BasePainter {
+class WestJasmine extends Bot {
   WestJasmine(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     return randomDir();

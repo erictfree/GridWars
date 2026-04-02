@@ -1,4 +1,4 @@
-class JonesSophia extends BasePainter {
+class JonesSophia extends Bot {
   JonesSophia(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     int halfC = game.cols / 2, halfR = game.rows / 2;

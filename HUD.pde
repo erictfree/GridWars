@@ -25,4 +25,10 @@ void drawHUD() {
   textAlign(PConstants.RIGHT, PConstants.TOP);
   String timeStr = nf(secs / 60, 1) + ":" + nf(secs % 60, 2);
   text(timeStr, hw - 4, hy + barH + 2);
+
+  // FPS + particle counter
+  fill(255, 255, 0, 150);
+  textSize(8);
+  textAlign(PConstants.LEFT, PConstants.TOP);
+  text((int) frameRate + " FPS  P:" + particles.size(), 4, hy + barH + 2);
 }

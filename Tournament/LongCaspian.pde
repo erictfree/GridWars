@@ -1,4 +1,4 @@
-class LongCaspian extends BasePainter {
+class LongCaspian extends Bot {
   Direction[] _cw;
   int _di = 0, _steps = 0, _limit = 1, _turns = 0;
   LongCaspian(int x, int y, color c, String name) { super(x, y, c, name); }

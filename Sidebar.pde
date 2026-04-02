@@ -61,7 +61,7 @@ void drawSidebar() {
   }
 
   // Layout — 3 rows per entry: name, score+delta, meter
-  int showing = n;
+  int showing = min(n, 20);  // cap at top 20
   float listTop = 28;
   float listBot = sh - 6;
   float entryH  = min(50, (listBot - listTop) / showing);  // cap height so few entries don't stretch

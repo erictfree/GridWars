@@ -1,4 +1,4 @@
-class GrahamSoleil extends BasePainter {
+class GrahamSoleil extends Bot {
   GrahamSoleil(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     return randomDir();

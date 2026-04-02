@@ -1,4 +1,4 @@
-class BrownOlivia extends BasePainter {
+class BrownOlivia extends Bot {
   BrownOlivia(int x, int y, color c, String name) { super(x, y, c, name); }
   Direction getNextMove(GameInfo game) {
     int cols = game.cols, rows = game.rows, total = cols * rows;

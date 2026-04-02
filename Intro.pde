@@ -1,5 +1,29 @@
 // ── Intro & Countdown screens ───────────────────────────────
 
+void drawBeastSplash() {
+  float cx = width / 2.0;
+  float fastPulse = 0.5 + 0.5 * sin(stateTimer * 0.2);
+
+  // Subtitle
+  fill(0, 160);
+  textSize(20);
+  textAlign(PConstants.CENTER, PConstants.CENTER);
+  text(tournamentBotList.size() + " BOTS  ·  ONE GRID  ·  NO MERCY", cx + 2, height * 0.68 + 2);
+  fill(255, 220);
+  text(tournamentBotList.size() + " BOTS  ·  ONE GRID  ·  NO MERCY", cx, height * 0.68);
+
+  // "PRESS SPACE" — big flashing
+  boolean blink = (stateTimer % 45) < 30;
+  if (blink) {
+    fill(255, 255, 0, 30);
+    textSize(28);
+    text("PRESS SPACE TO UNLEASH", cx, height * 0.90);
+    fill(255, 255, 0, 200 + 55 * fastPulse);
+    textSize(26);
+    text("PRESS SPACE TO UNLEASH", cx, height * 0.90);
+  }
+}
+
 void drawTestIntro() {
   float cx = width / 2.0;
   float pulse = 0.7 + 0.3 * sin(stateTimer * 0.08);
@@ -13,48 +37,41 @@ void drawTestIntro() {
     rect(0, y, width, 2);
   }
 
-  // ── "TEST MODE" — huge neon with glow layers ──
   textAlign(PConstants.CENTER, PConstants.CENTER);
 
-  // Glow layers (back to front)
-  fill(0, 200, 255, 20);
-  textSize(56);
-  text("TEST MODE", cx + 2, height * 0.24 + 2);
-  text("TEST MODE", cx - 2, height * 0.24 - 2);
-
-  fill(0, 200, 255, 40);
-  textSize(54);
-  text("TEST MODE", cx, height * 0.24);
-
-  // Main text
-  fill(arcadeBlue, 220 + 35 * pulse);
-  textSize(52);
-  text("TEST MODE", cx, height * 0.24);
+  // ── Dark panel behind contenders area ──
+  float panelTop = height * 0.36;
+  float panelBot = height * 0.80;
+  float panelW = 700;
+  float panelX = cx - panelW / 2;
+  noStroke();
+  fill(0, 180);
+  rect(panelX, panelTop, panelW, panelBot - panelTop, 16);
 
   // ── Horizontal neon dividers ──
-  float divY = height * 0.30;
+  float divY = height * 0.38;
   for (int layer = 3; layer >= 0; layer--) {
     stroke(arcadeBlue, (4 - layer) * 25 * pulse);
     strokeWeight(1 + layer * 2);
-    line(cx - 350, divY, cx + 350, divY);
+    line(cx - 300, divY, cx + 300, divY);
   }
   noStroke();
 
   // ── "CONTENDERS" — spaced, hot pink, with glow ──
   fill(255, 0, 128, 30);
   textSize(26);
-  text("C O N T E N D E R S", cx, height * 0.345);
+  text("C O N T E N D E R S", cx, height * 0.41);
   fill(255, 0, 128);
   textSize(24);
-  text("C O N T E N D E R S", cx, height * 0.345);
+  text("C O N T E N D E R S", cx, height * 0.41);
 
   // ── Bot roster — big names, color swatches, animated entry ──
   int cols = (n > 10) ? 3 : (n > 5) ? 2 : 1;
   int perCol = (int) ceil((float) n / cols);
   float colW = 320;
   float rosterX = cx - (cols * colW) / 2;
-  float startY = height * 0.40;
-  float rowH = min(38, (height * 0.30) / perCol);
+  float startY = height * 0.46;
+  float rowH = min(38, (height * 0.25) / perCol);
 
   // Bots appear one by one
   int botsToShow = min(n, (int)(stateTimer * n / 50.0) + 1);
@@ -84,10 +101,12 @@ void drawTestIntro() {
     fill(entry.col);
     rect(bx, by + 3, 18, 18);
 
-    // Name
-    fill(entry.col);
+    // Name — shadow + main
     textSize(16);
     textAlign(PConstants.LEFT, PConstants.TOP);
+    fill(0, 180);
+    text(displayName(entry.name), bx + 29, by + 4);
+    fill(entry.col);
     text(displayName(entry.name), bx + 28, by + 3);
   }
 
@@ -113,10 +132,10 @@ void drawTestIntro() {
   fill(0, 160);
   textSize(20);
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  text(n + " BOTS ENTER  ·  1 BOT WINS", cx + 2, height * 0.78 + 2);
+  text(n + " BOTS ENTER  ·  1 BOT WINS", cx + 2, height * 0.82 + 2);
   // Main
   fill(255, 220);
-  text(n + " BOTS ENTER  ·  1 BOT WINS", cx, height * 0.78);
+  text(n + " BOTS ENTER  ·  1 BOT WINS", cx, height * 0.82);
 
   // ── "PRESS SPACE" — big flashing arcade prompt ──
   boolean blink = (stateTimer % 45) < 30;
@@ -124,17 +143,17 @@ void drawTestIntro() {
     // Glow
     fill(255, 255, 0, 30);
     textSize(30);
-    text("PRESS SPACE TO START", cx, height * 0.85);
+    text("PRESS SPACE TO START", cx, height * 0.88);
     // Main
     fill(255, 255, 0, 200 + 55 * fastPulse);
     textSize(28);
-    text("PRESS SPACE TO START", cx, height * 0.85);
+    text("PRESS SPACE TO START", cx, height * 0.88);
   }
 
   // ── Controls hint ──
   fill(80);
   textSize(11);
-  text("R = RESTART  |  T = TOURNAMENT MODE", cx, height * 0.93);
+  text("R = RESTART  |  T = TOURNAMENT MODE", cx, height * 0.95);
 }
 
 void drawIntro() {
