@@ -539,6 +539,8 @@ void drawTournamentMode() {
 
     case 3:  // Heat results
       drawHeatResults();
+      drawEffects();
+      updateEffects();
       break;
 
     case 4:  // Champion!

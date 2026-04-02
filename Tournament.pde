@@ -358,7 +358,7 @@ void drawBracketView() {
 
       // Box fill
       if (h.completed) {
-        fill(0, 180, 80, 60);
+        fill(0, 40, 20, 220);
       } else if (isThisHeat) {
         fill(255, 255, 0, 60);
       } else {
@@ -385,9 +385,12 @@ void drawBracketView() {
         float innerRowH = min(10, (boxH - 4) / max(1, showCount));
         for (int wi = 0; wi < showCount; wi++) {
           BotEntry winner = h.bots.get(wi);
-          fill(winner.col);
-          textSize(min(7, innerRowH - 1));
+          float ts = min(7, innerRowH - 1);
+          textSize(ts);
           textAlign(PConstants.LEFT, PConstants.TOP);
+          fill(0, 200);
+          text(displayName(winner.name), bx + 5, by + 3 + wi * innerRowH);
+          fill(winner.col);
           text(displayName(winner.name), bx + 4, by + 2 + wi * innerRowH);
         }
       } else if (roundActive) {
@@ -552,6 +555,28 @@ void drawHeatResults() {
   for (int y = 0; y < height; y += 3) {
     fill(0, 20);
     rect(0, y, width, 1);
+  }
+
+  // ── Continuous confetti ──
+  color winCol = heat.bots.size() > 0 ? heat.bots.get(0).col : color(255, 215, 0);
+  if (tourneyTimer % 4 == 0) {
+    for (int i = 0; i < 4; i++) {
+      float x = random(width);
+      float y = random(-50, -10);
+      float vx = random(-1.5, 1.5);
+      float vy = random(2, 5);
+      color c;
+      float roll = random(1);
+      if (roll < 0.3) c = winCol;
+      else if (roll < 0.5) c = color(255, 215, 0);
+      else if (roll < 0.65) c = color(255, 0, 128);
+      else if (roll < 0.8) c = color(0, 255, 255);
+      else c = color(255);
+      Particle p = new Particle(x, y, vx, vy, c, random(140, 220), random(3, 7));
+      p.gravity = 0.03;
+      p.friction = 0.998;
+      particles.add(p);
+    }
   }
 
   // ── Panel ──
