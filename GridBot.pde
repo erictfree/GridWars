@@ -23,9 +23,9 @@ int gameStartMillis;
 // Background images
 PImage bgImg;
 PImage beastBgImg;
-PImage playBgImg;
 boolean beastMode = false;
 boolean beastSplash = false;
+boolean showLeaderboard = true;
 
 // ── Retro arcade color palette ──────────────────────────────
 // Drawn from Pac-Man, Galaga, Donkey Kong, Dig Dug, Q*bert, etc.
@@ -106,7 +106,6 @@ void setup() {
 
   // Load backgrounds
   bgImg = loadImage("header.png");
-  playBgImg = loadImage("background2.jpg");
   beastBgImg = loadImage("beastbackground.jpg");
   if (beastBgImg != null) {
     beastBgImg.resize(winW, winH);
@@ -312,12 +311,10 @@ void draw() {
     showBg = (gameState == 0) || (gameOver && !needsScreenshot);
   }
 
-  if (showBg && beastMode && beastBgImg != null) {
+  if (showBg && beastMode && !tournamentMode && beastBgImg != null) {
     image(beastBgImg, 0, 0);
   } else if (showBg && bgImg != null) {
     image(bgImg, 0, 0);
-  } else if (playBgImg != null) {
-    image(playBgImg, 0, 0);
   } else {
     background(0);
   }
@@ -445,8 +442,8 @@ void drawPlayArea() {
   fill(0, 180, 220, 18);
   rect(MARGIN - 3, TOP_MARGIN + MARGIN - 3, gridW + 6, gridH + 6, CORNER + 4);
 
-  // Rounded backdrop — semi-transparent so background shows through
-  fill(12, 16, 38, 80);
+  // Rounded backdrop
+  fill(12, 16, 38, 170);
   rect(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
 
   // Border — bright neon glow, pulses red under time pressure
@@ -459,7 +456,6 @@ void drawPlayArea() {
     borderAlpha = 160 + 95 * timePressureIntensity * pulse;
     borderWeight = 2 + 2 * timePressureIntensity * pulse;
   }
-  // Lead change flash — border flashes white briefly
   int leadAge = frameCount - leadChangeFrame;
   if (leadAge < 20) {
     float flash = 1.0 - (float) leadAge / 20;
@@ -498,11 +494,13 @@ void drawPlayArea() {
     gameImg.save(sketchPath("images/game-" + year() + nf(month(),2) + nf(day(),2) + "-" + nf(hour(),2) + nf(minute(),2) + nf(second(),2) + ".png"));
   }
 
-  // Sidebar
-  pushMatrix();
-  translate(MARGIN + gridW + MARGIN, TOP_MARGIN + MARGIN);
-  drawSidebar();
-  popMatrix();
+  // Sidebar — overlays on top of grid, toggled with L
+  if (showLeaderboard) {
+    pushMatrix();
+    translate(MARGIN + gridW + MARGIN, TOP_MARGIN + MARGIN);
+    drawSidebar();
+    popMatrix();
+  }
 
   // Confetti on top
   drawEffects();
@@ -569,7 +567,9 @@ void drawGrid() {
       int cy = r * CELL;
 
       if (owner == -1) {
-        fill(12, 14, 30, 60);
+        float n = noise(c * 0.3, r * 0.3);
+        float g = 12 + n * 30;
+        fill(g, g, g + 5);
         rect(cx, cy, cs, cs);
       } else {
         color base = bots.get(owner).col;
@@ -648,6 +648,11 @@ void keyPressed() {
     initGame();
   }
 
+  // L = toggle leaderboard
+  if (key == 'l' || key == 'L') {
+    showLeaderboard = !showLeaderboard;
+  }
+
   // B = beast mode splash
   if (key == 'b' || key == 'B') {
     tournamentMode = false;
@@ -660,6 +665,8 @@ void keyPressed() {
   // T = start tournament mode
   if (key == 't' || key == 'T') {
     tournamentMode = true;
+    beastMode = false;
+    beastSplash = false;
     stateTimer = 0;
     tourneyTimer = 0;
     stopMusic();

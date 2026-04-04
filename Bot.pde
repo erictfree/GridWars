@@ -182,14 +182,17 @@ class Bot {
       text(label, cx, cy - 1);
     }
 
-    // Name with shadow for readability
+    // Name with dark backing for readability
     float nameSz = max(9, CELL * 1.1);
     float nameY = cy - CELL * 1.6 * gs;
     textSize(nameSz);
     textAlign(PConstants.CENTER, PConstants.BOTTOM);
-    fill(0, 160);
-    text(displayName(name), cx + 1, nameY + 1);
-    fill(col);
-    text(displayName(name), cx, nameY);
+    String dName = displayName(name);
+    float tw = textWidth(dName);
+    float pad = 3;
+    fill(0, 180);
+    rect(cx - tw / 2 - pad, nameY - nameSz - pad + 2, tw + pad * 2, nameSz + pad * 2 - 2, 3);
+    fill(255);
+    text(dName, cx, nameY);
   }
 }

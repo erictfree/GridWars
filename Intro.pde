@@ -153,7 +153,7 @@ void drawTestIntro() {
   // ── Controls hint ──
   fill(80);
   textSize(11);
-  text("R = RESTART  |  T = TOURNAMENT MODE", cx, height * 0.95);
+  text("R = RESTART  |  T = TOURNAMENT  |  L = LEADERBOARD", cx, height * 0.95);
 }
 
 void drawIntro() {
