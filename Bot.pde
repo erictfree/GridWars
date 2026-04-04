@@ -1,10 +1,8 @@
 class Bot {
-
   int x, y, id, score;
   color col;
   String name;
 
-  // ── Appearance customization ──────────────────────────────
   float glowSize   = 1.0;
   String label     = "";
   int trailLength  = 15;

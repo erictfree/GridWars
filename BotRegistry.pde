@@ -10,11 +10,26 @@ ArrayList<BotEntry> tournamentBotList;
 // ─────────────────────────────────────────────────────────────
 void registerTestBots() {
   testBotList = new ArrayList<BotEntry>();
-  testBotList.add(new BotEntry("SmithEmma",    PALETTE[0],  0));   // Random
-  testBotList.add(new BotEntry("JohnsonLiam",  PALETTE[1],  1));   // Greedy
-  testBotList.add(new BotEntry("WilliamsNoah", PALETTE[2],  2));   // Spiral
-  testBotList.add(new BotEntry("BrownOlivia",  PALETTE[3],  3));   // Frontier
-  testBotList.add(new BotEntry("JonesSophia",  PALETTE[4],  4));   // Hunter
+  testBotList.add(new BotEntry("SmithEmma",       PALETTE[0],  0));
+  testBotList.add(new BotEntry("JohnsonLiam",     PALETTE[1],  1));
+  testBotList.add(new BotEntry("WilliamsNoah",    PALETTE[2],  2));
+  testBotList.add(new BotEntry("BrownOlivia",     PALETTE[3],  3));
+  testBotList.add(new BotEntry("JonesSophia",     PALETTE[4],  4));
+  testBotList.add(new BotEntry("GarciaHugo",      PALETTE[5],  1));
+  testBotList.add(new BotEntry("MartinezChloe",   PALETTE[6],  3));
+  testBotList.add(new BotEntry("DavisJames",      PALETTE[7],  0));
+  testBotList.add(new BotEntry("RobinsonMax",     PALETTE[8],  4));
+  testBotList.add(new BotEntry("ClarkEllie",      PALETTE[9],  2));
+  testBotList.add(new BotEntry("HallAria",        PALETTE[10], 1));
+  testBotList.add(new BotEntry("LewisOscar",      PALETTE[11], 3));
+  testBotList.add(new BotEntry("WalkerIvy",       PALETTE[12], 0));
+  testBotList.add(new BotEntry("PerezHazel",      PALETTE[13], 4));
+  testBotList.add(new BotEntry("HillLuna",        PALETTE[14], 2));
+  testBotList.add(new BotEntry("GreenSienna",     PALETTE[15], 1));
+  testBotList.add(new BotEntry("AdamsRiver",      PALETTE[16], 3));
+  testBotList.add(new BotEntry("NelsonJude",      PALETTE[17], 0));
+  testBotList.add(new BotEntry("CookEzra",        PALETTE[18], 4));
+  testBotList.add(new BotEntry("MooreAva",        PALETTE[19], 2));
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -1,6 +1,9 @@
 // ── Retro color palettes — one is randomly chosen each game ─
 
 void randomizePalette() {
+  // TEMPORARY: jewel-tone palette for screenshots
+  paletteJewel();
+  /*
   int pick = (int) random(6);
   switch (pick) {
     case 0:  paletteSynthwave(); break;
@@ -10,6 +13,7 @@ void randomizePalette() {
     case 4:  paletteGameBoyColor(); break;
     default: paletteSega(); break;
   }
+  */
   // Max out saturation and brightness — bold, vivid colors
   pushStyle();
   colorMode(HSB, 360, 100, 100);
@@ -127,5 +131,21 @@ void paletteSega() {
     color(255, 200,  60), color( 60, 255, 200), color(200,  60, 255),
     color(180, 220, 100), color(220, 100, 180), color(100, 180, 220),
     color(255, 140, 100), color(100, 255, 140), color(140, 100, 255)
+  };
+}
+
+// TEMPORARY — deep jewel tones for screenshots
+void paletteJewel() {
+  PALETTE = new color[] {
+    color(180,  20, 120), color(  0, 180, 160), color( 30, 110, 200),
+    color(200, 160,  20), color(  0, 200, 180), color(160,  20, 160),
+    color( 20, 140, 180), color(200, 100,  20), color(100,  20, 180),
+    color( 20, 180, 100), color(180,  60,  80), color( 60, 160, 200),
+    color(180, 140,  40), color( 40, 200, 140), color(140,  40, 180),
+    color(200,  80, 140), color( 80, 180, 120), color(120,  60, 200),
+    color(200, 180,  60), color( 60, 120, 180), color(180,  40, 100),
+    color( 40, 200, 200), color(160, 120,  40), color(100,  40, 160),
+    color( 40, 160, 160), color(200,  60, 100), color( 60, 200, 100),
+    color(140,  80, 200), color(200, 140,  80), color( 80, 140, 200)
   };
 }
