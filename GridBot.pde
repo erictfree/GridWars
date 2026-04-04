@@ -23,6 +23,7 @@ int gameStartMillis;
 // Background images
 PImage bgImg;
 PImage beastBgImg;
+PImage playBgImg;
 boolean beastMode = false;
 boolean beastSplash = false;
 
@@ -105,6 +106,7 @@ void setup() {
 
   // Load backgrounds
   bgImg = loadImage("header.png");
+  playBgImg = loadImage("background2.jpg");
   beastBgImg = loadImage("beastbackground.jpg");
   if (beastBgImg != null) {
     beastBgImg.resize(winW, winH);
@@ -314,6 +316,8 @@ void draw() {
     image(beastBgImg, 0, 0);
   } else if (showBg && bgImg != null) {
     image(bgImg, 0, 0);
+  } else if (playBgImg != null) {
+    image(playBgImg, 0, 0);
   } else {
     background(0);
   }
@@ -441,8 +445,8 @@ void drawPlayArea() {
   fill(0, 180, 220, 18);
   rect(MARGIN - 3, TOP_MARGIN + MARGIN - 3, gridW + 6, gridH + 6, CORNER + 4);
 
-  // Rounded backdrop — tinted blue-purple glass
-  fill(12, 16, 38, 170);
+  // Rounded backdrop — semi-transparent so background shows through
+  fill(12, 16, 38, 80);
   rect(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
 
   // Border — bright neon glow, pulses red under time pressure
@@ -555,50 +559,52 @@ void drawTournamentMode() {
 
 void drawGrid() {
   noStroke();
+  int gap = 1;                             // 1px gap between cells
+  int cs = CELL - gap;                     // cell draw size
+
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
       int owner = grid[r][c];
+      int cx = c * CELL;
+      int cy = r * CELL;
 
       if (owner == -1) {
-        fill(0);
+        fill(12, 14, 30, 60);
+        rect(cx, cy, cs, cs);
       } else {
         color base = bots.get(owner).col;
+
+        // Main cell fill
         fill(red(base), green(base), blue(base), 235);
-      }
-      rect(c * CELL, r * CELL, CELL, CELL);
+        rect(cx, cy, cs, cs);
 
-      // Territory shimmer — rolling sparkle wave, stronger for higher scores
-      if (owner >= 0 && ((r + c) % 2 == 0)) {  // checkerboard skip for perf
-        float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
-        if (wave > 0.5) {
-          Bot ownerBot = bots.get(owner);
-          float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
-          float intensity = (wave - 0.5) * 2.0;
-          fill(255, intensity * (20 + 50 * scorePct));
-          rect(c * CELL, r * CELL, CELL, CELL);
+        // Inner highlight — lighter top half for depth
+        fill(255, 35);
+        rect(cx, cy, cs, cs / 2);
+
+        // Territory shimmer
+        if ((r + c) % 2 == 0) {
+          float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
+          if (wave > 0.5) {
+            Bot ownerBot = bots.get(owner);
+            float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
+            float intensity = (wave - 0.5) * 2.0;
+            fill(255, intensity * (20 + 50 * scorePct));
+            rect(cx, cy, cs, cs);
+          }
         }
-      }
 
-      // Subtle claim flash
-      if (owner >= 0 && claimFrame[r][c] > 0) {
-        int age = frameCount - claimFrame[r][c];
-        if (age < FLASH_FRAMES) {
-          float t = 1.0 - (float) age / FLASH_FRAMES;
-          fill(255, t * 80);
-          rect(c * CELL, r * CELL, CELL, CELL);
+        // Claim flash
+        if (claimFrame[r][c] > 0) {
+          int age = frameCount - claimFrame[r][c];
+          if (age < FLASH_FRAMES) {
+            float t = 1.0 - (float) age / FLASH_FRAMES;
+            fill(255, t * 80);
+            rect(cx, cy, cs, cs);
+          }
         }
       }
     }
-  }
-
-
-  // Grid lines — drawn as thin rects (faster than line() with stroke)
-  fill(255, 20);
-  for (int r = 1; r < ROWS; r++) {
-    rect(0, r * CELL, COLS * CELL, 1);
-  }
-  for (int c = 1; c < COLS; c++) {
-    rect(c * CELL, 0, 1, ROWS * CELL);
   }
 
   // Territory borders — drawn as thin rects
