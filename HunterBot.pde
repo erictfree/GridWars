@@ -5,26 +5,74 @@ class HunterBot extends Bot {
   }
 
   Direction getNextMove(GameInfo game) {
-    int halfC = game.cols / 2;
-    int halfR = game.rows / 2;
+    int cols = game.cols;
+    int rows = game.rows;
 
-    // Count unclaimed cells in each quadrant using GameInfo
+    // Always claim adjacent unclaimed cells first
+    ArrayList<Direction> free = getFreeDirs();
+    if (free.size() > 0) {
+      // Pick the free direction toward the richest quadrant
+      int halfC = cols / 2;
+      int halfR = rows / 2;
+
+      int[] counts = {
+        game.countUnclaimedInRegion(0,     0,     halfR - 1, halfC - 1),
+        game.countUnclaimedInRegion(0,     halfC, halfR - 1, cols - 1),
+        game.countUnclaimedInRegion(halfR, 0,     rows - 1,  halfC - 1),
+        game.countUnclaimedInRegion(halfR, halfC, rows - 1,  cols - 1)
+      };
+
+      int best = 0;
+      for (int i = 1; i < 4; i++) {
+        if (counts[i] > counts[best]) best = i;
+      }
+
+      int tx = (best % 2 == 0) ? cols / 4 : 3 * cols / 4;
+      int ty = (best < 2)      ? rows / 4 : 3 * rows / 4;
+
+      // Score free directions by openness + bias toward target
+      Direction bestDir = null;
+      float bestScore = -999;
+
+      for (Direction d : free) {
+        int nx = this.x + d.dx;
+        int ny = this.y + d.dy;
+        float score = 0;
+
+        // Openness
+        for (Direction nd : DIRS) {
+          if (game.isUnclaimed(ny + nd.dy, nx + nd.dx)) score += 6;
+        }
+
+        // Bias toward richest quadrant
+        float curDist = abs(tx - this.x) + abs(ty - this.y);
+        float newDist = abs(tx - nx) + abs(ty - ny);
+        score += (curDist - newDist) * 2;
+
+        if (score > bestScore) { bestScore = score; bestDir = d; }
+      }
+
+      return bestDir != null ? bestDir : free.get(0);
+    }
+
+    // No free neighbors — move toward richest quadrant
+    int halfC = cols / 2;
+    int halfR = rows / 2;
+
     int[] counts = {
-      game.countUnclaimedInRegion(0,     0,     halfR - 1, halfC - 1),  // TL
-      game.countUnclaimedInRegion(0,     halfC, halfR - 1, game.cols - 1),  // TR
-      game.countUnclaimedInRegion(halfR, 0,     game.rows - 1, halfC - 1),  // BL
-      game.countUnclaimedInRegion(halfR, halfC, game.rows - 1, game.cols - 1)   // BR
+      game.countUnclaimedInRegion(0,     0,     halfR - 1, halfC - 1),
+      game.countUnclaimedInRegion(0,     halfC, halfR - 1, cols - 1),
+      game.countUnclaimedInRegion(halfR, 0,     rows - 1,  halfC - 1),
+      game.countUnclaimedInRegion(halfR, halfC, rows - 1,  cols - 1)
     };
 
-    // Find richest quadrant
     int best = 0;
     for (int i = 1; i < 4; i++) {
       if (counts[i] > counts[best]) best = i;
     }
 
-    // Target = center of richest quadrant
-    int tx = (best % 2 == 0) ? game.cols / 4 : 3 * game.cols / 4;
-    int ty = (best < 2)      ? game.rows / 4 : 3 * game.rows / 4;
+    int tx = (best % 2 == 0) ? cols / 4 : 3 * cols / 4;
+    int ty = (best < 2)      ? rows / 4 : 3 * rows / 4;
 
     int dx = tx - this.x;
     int dy = ty - this.y;

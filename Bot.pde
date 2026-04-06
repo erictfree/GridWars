@@ -8,14 +8,14 @@ class Bot {
   int trailLength  = 15;
 
   // Game reference (set each step by the engine)
-  GameInfo _game;
+  GameInfo gameRef;
 
   // Trail state
-  final int _MAX_TRAIL = 40;
-  int[] trailX = new int[_MAX_TRAIL];
-  int[] trailY = new int[_MAX_TRAIL];
-  int _trailIdx = 0;
-  boolean _trailFull = false;
+  final int MAX_TRAIL = 40;
+  int[] trailX = new int[MAX_TRAIL];
+  int[] trailY = new int[MAX_TRAIL];
+  int trailIdx = 0;
+  boolean trailFull = false;
 
   Bot(int startX, int startY, color col, String name) {
     this.x    = startX;
@@ -24,10 +24,10 @@ class Bot {
     this.name = name;
     this.id   = -1;
     this.score = 0;
-    this._streak = 0;
+    this.streak = 0;
   }
 
-  int _streak = 0;
+  int streak = 0;
 
   // ─────────────────────────────────────────────────────────────
   //  ★  OVERRIDE THIS METHOD  ★
@@ -62,22 +62,22 @@ class Bot {
   boolean canClaim(Direction d) {
     int nx = x + d.dx;
     int ny = y + d.dy;
-    return _game != null && _game.isUnclaimed(ny, nx);
+    return gameRef != null && gameRef.isUnclaimed(ny, nx);
   }
 
   /** Is the cell in direction d within the grid? */
   boolean isInBounds(Direction d) {
     int nx = x + d.dx;
     int ny = y + d.dy;
-    return _game != null && _game.inBounds(ny, nx);
+    return gameRef != null && gameRef.inBounds(ny, nx);
   }
 
   /** Returns owner of the cell in direction d. -1 = unclaimed, -2 = out of bounds. */
   int peekCell(Direction d) {
     int nx = x + d.dx;
     int ny = y + d.dy;
-    if (_game == null) return -2;
-    return _game.getOwner(ny, nx);
+    if (gameRef == null) return -2;
+    return gameRef.getOwner(ny, nx);
   }
 
   /** Returns a list of directions that lead to unclaimed cells. */
@@ -92,13 +92,13 @@ class Bot {
   // ── Engine methods — do not override ──────────────────────
 
   void update(GameInfo game) {
-    _game = game;
+    gameRef = game;
 
-    int tl = constrain(trailLength, 1, _MAX_TRAIL);
-    trailX[_trailIdx] = x;
-    trailY[_trailIdx] = y;
-    _trailIdx = (_trailIdx + 1) % tl;
-    if (!_trailFull && _trailIdx == 0) _trailFull = true;
+    int tl = constrain(trailLength, 1, MAX_TRAIL);
+    trailX[trailIdx] = x;
+    trailY[trailIdx] = y;
+    trailIdx = (trailIdx + 1) % tl;
+    if (!trailFull && trailIdx == 0) trailFull = true;
 
     Direction d = getNextMove(game);
     x = constrain(x + d.dx, 0, game.cols - 1);
@@ -108,7 +108,7 @@ class Bot {
       score++;
       unclaimed--;
       claimFrame[y][x] = frameCount;
-      _streak++;
+      streak++;
 
       // Sparkle on claim
       float cx = x * CELL + CELL / 2.0;
@@ -117,9 +117,9 @@ class Bot {
         spawnClaimSparkle(cx, cy, col);
       }
       // Streak burst every 20 consecutive claims
-      if (_streak % 100 == 0) {
+      if (streak % 100 == 0) {
         spawnMegaBurst(cx, cy, col);
-      } else if (_streak % 20 == 0) {
+      } else if (streak % 20 == 0) {
         spawnStreakBurst(cx, cy, col);
       }
 
@@ -136,7 +136,7 @@ class Bot {
         }
       }
     } else {
-      _streak = 0;
+      streak = 0;
     }
   }
 
@@ -148,10 +148,10 @@ class Bot {
 
     // Trail — subtle fading dots
     if (trailLength > 0) {
-      int tl = constrain(trailLength, 1, _MAX_TRAIL);
-      int count = _trailFull ? tl : _trailIdx;
+      int tl = constrain(trailLength, 1, MAX_TRAIL);
+      int count = trailFull ? tl : trailIdx;
       for (int i = 0; i < count; i++) {
-        int idx = _trailFull ? (_trailIdx + i) % tl : i;
+        int idx = trailFull ? (trailIdx + i) % tl : i;
         float t = (float)(i + 1) / (count + 1);
         fill(red(col), green(col), blue(col), t * 100);
         float sz = max(1, CELL * 0.35 * t);

@@ -1,38 +1,38 @@
 class SpiralBot extends Bot {
 
-  Direction[] _cw;
-  int _di    = 0;
-  int _steps = 0;
-  int _limit = 1;
-  int _turns = 0;
+  Direction[] cw;
+  int di    = 0;
+  int steps = 0;
+  int limit = 1;
+  int turns = 0;
 
   SpiralBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
   Direction getNextMove(GameInfo game) {
-    if (_cw == null) {
-      _cw = new Direction[]{ RIGHT, DOWN, LEFT, UP };
+    if (cw == null) {
+      cw = new Direction[]{ RIGHT, DOWN, LEFT, UP };
     }
 
-    Direction d = _cw[_di];
+    Direction d = cw[di];
 
     // Wall bounce
     int nx = this.x + d.dx;
     int ny = this.y + d.dy;
     if (!game.inBounds(ny, nx)) {
-      _di = (_di + 1) % 4;
-      _steps = 0;
-      return _cw[_di];
+      di = (di + 1) % 4;
+      steps = 0;
+      return cw[di];
     }
 
-    _steps++;
-    if (_steps >= _limit) {
-      _di = (_di + 1) % 4;
-      _turns++;
-      _steps = 0;
-      if (_turns % 2 == 0) {
-        _limit++;
+    steps++;
+    if (steps >= limit) {
+      di = (di + 1) % 4;
+      turns++;
+      steps = 0;
+      if (turns % 2 == 0) {
+        limit++;
       }
     }
     return d;
