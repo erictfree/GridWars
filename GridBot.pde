@@ -27,6 +27,7 @@ boolean beastMode = false;
 boolean beastSplash = false;
 boolean showLeaderboard = true;
 boolean showMagnifier = false;
+float creditsScrollX = 0;
 
 // ── Retro arcade color palette ──────────────────────────────
 // Drawn from Pac-Man, Galaga, Donkey Kong, Dig Dug, Q*bert, etc.
@@ -159,7 +160,7 @@ void playTestMusic() {
   if (music != null && music.isPlaying()) {
     music.stop();
   }
-  int pick = (int) random(1, 3);  // 1 or 2
+  int pick = (int) random(1, 5);  // 1–4
   music = new SoundFile(this, "test" + pick + ".mp3");
   music.amp(0.9);
   music.loop();

@@ -38,6 +38,11 @@ class BotEntry {
       case 13: return new FloodBot(x, y, col, name);
       case 14: return new MigrateBot(x, y, col, name);
       case 15: return new SprintBot(x, y, col, name);
+      case 16: return new HilbertBot(x, y, col, name);
+      case 17: return new VoronoiBot(x, y, col, name);
+      case 18: return new GradientBot(x, y, col, name);
+      case 19: return new StarterBot(x, y, col, name);
+      case 20: return new TestBot(x, y, col, name);
       default: return new RandomBot(x, y, col, name);
     }
   }

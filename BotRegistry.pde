@@ -10,40 +10,8 @@ ArrayList<BotEntry> tournamentBotList;
 // ─────────────────────────────────────────────────────────────
 void registerTestBots() {
   testBotList = new ArrayList<BotEntry>();
-  // Custom bots (x2)
-  testBotList.add(new BotEntry("BotUltimate",  PALETTE[0],  5));
-  testBotList.add(new BotEntry("BotUltimate",  PALETTE[1],  5));
-  testBotList.add(new BotEntry("BotScavenger", PALETTE[2],  6));
-  testBotList.add(new BotEntry("BotScavenger", PALETTE[3],  6));
-  testBotList.add(new BotEntry("BotThief",     PALETTE[4],  7));
-  testBotList.add(new BotEntry("BotThief",     PALETTE[5],  7));
-  testBotList.add(new BotEntry("BotWall",      PALETTE[6],  8));
-  testBotList.add(new BotEntry("BotWall",      PALETTE[7],  8));
-  testBotList.add(new BotEntry("BotShadow",    PALETTE[8],  9));
-  testBotList.add(new BotEntry("BotShadow",    PALETTE[9],  9));
-  testBotList.add(new BotEntry("BotDiagonal",  PALETTE[10], 10));
-  testBotList.add(new BotEntry("BotDiagonal",  PALETTE[11], 10));
-  testBotList.add(new BotEntry("BotZone",      PALETTE[12], 11));
-  testBotList.add(new BotEntry("BotZone",      PALETTE[13], 11));
-  testBotList.add(new BotEntry("BotPulse",     PALETTE[14], 12));
-  testBotList.add(new BotEntry("BotPulse",     PALETTE[15], 12));
-  testBotList.add(new BotEntry("BotFlood",     PALETTE[16], 13));
-  testBotList.add(new BotEntry("BotFlood",     PALETTE[17], 13));
-  testBotList.add(new BotEntry("BotMigrate",   PALETTE[18], 14));
-  testBotList.add(new BotEntry("BotMigrate",   PALETTE[19], 14));
-  testBotList.add(new BotEntry("BotSprint",    PALETTE[20], 15));
-  testBotList.add(new BotEntry("BotSprint",    PALETTE[21], 15));
-  // Reference bots (x2)
-  testBotList.add(new BotEntry("BotRandom",    PALETTE[22], 0));
-  testBotList.add(new BotEntry("BotRandom",    PALETTE[23], 0));
-  testBotList.add(new BotEntry("BotGreedy",    PALETTE[24], 1));
-  testBotList.add(new BotEntry("BotGreedy",    PALETTE[25], 1));
-  testBotList.add(new BotEntry("BotSpiral",    PALETTE[26], 2));
-  testBotList.add(new BotEntry("BotSpiral",    PALETTE[27], 2));
-  testBotList.add(new BotEntry("BotFrontier",  PALETTE[28], 3));
-  testBotList.add(new BotEntry("BotFrontier",  PALETTE[29], 3));
-  testBotList.add(new BotEntry("BotHunter",    PALETTE[0],  4));
-  testBotList.add(new BotEntry("BotHunter",    PALETTE[1],  4));
+  testBotList.add(new BotEntry("BotStarter", PALETTE[0], 19));
+  testBotList.add(new BotEntry("BotTest",    PALETTE[1], 20));
 }
 
 // ─────────────────────────────────────────────────────────────
