@@ -252,7 +252,7 @@ void drawMilestonePopups() {
 // ── 6. Crown indicator over leader ──────────────────────────
 
 void drawCrownIndicator() {
-  if (!tournamentMode) return;
+  if (!showMagnifier) return;
   if (currentLeaderId < 0 || currentLeaderId >= bots.size()) return;
   Bot leader = bots.get(currentLeaderId);
   float cx = leader.x * CELL + CELL / 2.0;

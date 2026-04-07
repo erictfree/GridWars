@@ -26,6 +26,7 @@ PImage beastBgImg;
 boolean beastMode = false;
 boolean beastSplash = false;
 boolean showLeaderboard = true;
+boolean showMagnifier = false;
 
 // ── Retro arcade color palette ──────────────────────────────
 // Drawn from Pac-Man, Galaga, Donkey Kong, Dig Dug, Q*bert, etc.
@@ -74,6 +75,7 @@ int lastHistStep = 0;
 
 // ── Audio ───────────────────────────────────────────────────
 SoundFile music;
+boolean musicMuted = false;
 
 // ── UI colors (retro arcade) ────────────────────────────────
 color unclaimedColor, sidebarBg, hudBg, arcadeBlue;
@@ -131,6 +133,7 @@ void setup() {
   arcadeFont = createFont("PressStart2P-Regular.ttf", 48);
   textFont(arcadeFont);
 
+  // Sound effects
   initEffects();
 
   // Register bots for both modes
@@ -148,6 +151,7 @@ void playRandomTheme() {
   }
   int pick = (int) random(1, NUM_THEMES + 1);  // 1–9
   music = new SoundFile(this, "theme" + pick + ".mp3");
+  music.amp(0.9);
   music.loop();
 }
 
@@ -157,6 +161,7 @@ void playTestMusic() {
   }
   int pick = (int) random(1, 3);  // 1 or 2
   music = new SoundFile(this, "test" + pick + ".mp3");
+  music.amp(0.9);
   music.loop();
 }
 
@@ -283,6 +288,7 @@ void initBeastMode() {
   initEffects();
   stopMusic();
   music = new SoundFile(this, "beast.mp3");
+  music.amp(0.9);
   music.loop();
 }
 
@@ -325,18 +331,21 @@ void draw() {
       image(beastBgImg, 0, 0);
     }
     drawBeastSplash();
+    drawMuteButton();
     return;
   }
 
   // ── Tournament mode ───────────────────────────────────────
   if (tournamentMode) {
     drawTournamentMode();
+    drawMuteButton();
     return;
   }
 
   // ── Test mode: wait for space, then play ───────────────────
   if (gameState == 0 && !beastMode) {
     drawTestIntro();
+    drawMuteButton();
     return;
   }
 
@@ -350,6 +359,7 @@ void draw() {
   } else {
     drawPlayArea();
   }
+  drawMuteButton();
 }
 
 // ── Simulation step ─────────────────────────────────────────
@@ -640,6 +650,70 @@ Direction randomDir() {
   return DIRS[(int) random(DIRS.length)];
 }
 
+// ── Mute button (lower-left corner) ─────────────────────────
+final int MUTE_X = 14, MUTE_Y_OFF = 14, MUTE_SZ = 22;
+
+void drawMuteButton() {
+  float bx = MUTE_X;
+  float by = height - MUTE_Y_OFF - MUTE_SZ;
+
+  // Background circle
+  noStroke();
+  fill(0, 120);
+  ellipse(bx + MUTE_SZ / 2, by + MUTE_SZ / 2, MUTE_SZ + 8, MUTE_SZ + 8);
+
+  stroke(255, 140);
+  strokeWeight(2);
+  noFill();
+
+  if (musicMuted) {
+    // Muted: speaker with X
+    // Speaker body
+    float sx = bx + 4, sy = by + 7;
+    line(sx, sy, sx + 4, sy);
+    line(sx, sy + 8, sx + 4, sy + 8);
+    line(sx, sy, sx, sy + 8);
+    line(sx + 4, sy, sx + 8, sy - 3);
+    line(sx + 4, sy + 8, sx + 8, sy + 11);
+    line(sx + 8, sy - 3, sx + 8, sy + 11);
+    // X mark
+    stroke(255, 80, 80, 200);
+    line(bx + 13, by + 7, bx + 19, by + 15);
+    line(bx + 19, by + 7, bx + 13, by + 15);
+  } else {
+    // Unmuted: speaker with sound waves
+    float sx = bx + 4, sy = by + 7;
+    line(sx, sy, sx + 4, sy);
+    line(sx, sy + 8, sx + 4, sy + 8);
+    line(sx, sy, sx, sy + 8);
+    line(sx + 4, sy, sx + 8, sy - 3);
+    line(sx + 4, sy + 8, sx + 8, sy + 11);
+    line(sx + 8, sy - 3, sx + 8, sy + 11);
+    // Sound waves
+    noFill();
+    stroke(255, 120);
+    arc(bx + 14, by + MUTE_SZ / 2, 8, 10, -PI / 3, PI / 3);
+    arc(bx + 14, by + MUTE_SZ / 2, 14, 16, -PI / 4, PI / 4);
+  }
+  noStroke();
+}
+
+void mousePressed() {
+  float bx = MUTE_X;
+  float by = height - MUTE_Y_OFF - MUTE_SZ;
+  if (mouseX >= bx - 4 && mouseX <= bx + MUTE_SZ + 4 &&
+      mouseY >= by - 4 && mouseY <= by + MUTE_SZ + 4) {
+    musicMuted = !musicMuted;
+    if (music != null) {
+      if (musicMuted) {
+        music.amp(0);
+      } else {
+        music.amp(0.9);
+      }
+    }
+  }
+}
+
 void keyPressed() {
   if (key == 'r' || key == 'R') {
     tournamentMode = false;
@@ -651,6 +725,11 @@ void keyPressed() {
   // L = toggle leaderboard
   if (key == 'l' || key == 'L') {
     showLeaderboard = !showLeaderboard;
+  }
+
+  // Z = toggle magnifier on lead player
+  if (key == 'z' || key == 'Z') {
+    showMagnifier = !showMagnifier;
   }
 
   // B = beast mode splash

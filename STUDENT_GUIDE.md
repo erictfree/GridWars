@@ -10,11 +10,12 @@ You don't control your bot in real time. You write the **brain** — a single me
 
 You are writing a **subclass** of `Bot`. This is the core object-oriented concept at work:
 
-- `Bot` is the **base class** — it knows how to move, render, and interact with the grid.
+- `Bot` is the **base class** — it handles movement, rendering, scoring, and grid interaction.
 - Your class **extends** `Bot` — it inherits all of that behavior for free.
-- You **override** one method — `getNextMove()` — to replace the default random walk with your own strategy.
+- You **override** `getNextMove()` to replace the default random walk with your own strategy.
+- But your bot is more than one method — you design a full class with its own instance variables, helper methods, and constructor logic. You're building a self-contained agent that remembers, plans, and adapts.
 
-That's inheritance in action: reuse what exists, replace what you want to change.
+That's inheritance in action: reuse what exists, replace what you want to change, and build your own logic on top.
 
 ## Your File
 
@@ -27,7 +28,7 @@ class EricBot extends Bot {
     super(startX, startY, col, name);
   }
 
-  Direction getNextMove(int[][] grid, int cols, int rows) {
+  Direction getNextMove(GameInfo game) {
     // Your strategy goes here.
     // Return one of: UP, DOWN, LEFT, RIGHT
     return randomDir();
@@ -40,50 +41,118 @@ That's a complete, valid submission. It walks randomly. You can do better.
 ## The One Method You Override
 
 ```java
-Direction getNextMove(int[][] grid, int cols, int rows)
+Direction getNextMove(GameInfo game)
 ```
 
-This is called once per simulation step. You look at the world, you pick a direction.
-
-**Parameters:**
-
-| Name   | Type      | What It Is |
-|--------|-----------|------------|
-| `grid` | `int[][]` | The full game board. `grid[row][col]` is `-1` (unclaimed) or a player ID. |
-| `cols` | `int`     | Number of columns in the grid. |
-| `rows` | `int`     | Number of rows in the grid. |
-
-**What you can access inside this method:**
-
-| Expression    | What It Gives You |
-|---------------|-------------------|
-| `this.x`      | Your current column |
-| `this.y`      | Your current row |
-| `this.id`     | Your player ID (matches values in the grid) |
-| `this.score`  | How many cells you've claimed so far |
-| `grid[r][c]`  | The bot ID that claimed this cell, or `-1` if unclaimed. Compare to `this.id` to check if it's yours. |
-| `UP, DOWN, LEFT, RIGHT` | Direction constants you can return |
-| `DIRS`        | Array of all four directions |
-| `randomDir()` | Helper that returns a random direction |
+This is called once per simulation step. You look at the world through the `game` object, you pick a direction.
 
 **You must return** one of: `UP`, `DOWN`, `LEFT`, or `RIGHT`.
 
-## How the Grid Works
+---
 
-The grid is a 2D array indexed as `grid[row][col]`, which means `grid[y][x]`:
+## Understanding the Data Structures
+
+Before you write a strategy, understand what you're working with.
+
+### The Grid: `game.grid[row][col]`
+
+The playing field is a 2D integer array. Each cell holds either `-1` (unclaimed) or a bot's ID number.
 
 ```
-        col 0   col 1   col 2   ...
-row 0  [  -1  ] [  -1  ] [  3  ] ...
-row 1  [   0  ] [  -1  ] [  -1  ] ...
-row 2  [   0  ] [   0  ] [  -1  ] ...
+        col 0   col 1   col 2   col 3   ...
+row 0  [  -1  ] [  -1  ] [  3  ] [  -1  ] ...
+row 1  [   0  ] [  -1  ] [  -1  ] [  -1  ] ...
+row 2  [   0  ] [   0  ] [  -1  ] [   2  ] ...
 ```
 
 - `-1` means the cell is **unclaimed** — move there to score a point.
-- `0`, `1`, `2`, etc. is the **bot ID** of whoever claimed it. Your own ID is `this.id`. So `grid[r][c] == this.id` means you own that cell. Any other number means a competitor owns it.
+- `0`, `1`, `2`, etc. is the **bot ID** of whoever claimed it. Your own ID is `this.id`, so `game.grid[r][c] == this.id` means you own that cell.
 - Moving onto a claimed cell (yours or anyone's) is legal but doesn't score.
 
-**Important:** It's `grid[y][x]`, not `grid[x][y]`. Row first, column second.
+**Important: it's `grid[row][col]`, which is `grid[y][x]` — row first, column second.** Your bot's position is `this.x` (column) and `this.y` (row), so to check your own cell: `game.grid[this.y][this.x]`.
+
+The grid is roughly 150 rows tall and sized to fill the screen. Exact dimensions are in `game.rows` and `game.cols`.
+
+### The GameInfo Object
+
+The `game` parameter passed to `getNextMove()` is your window into the world. It wraps the grid and gives you useful query methods so you don't have to write bounds-checking yourself.
+
+**Fields you can read:**
+
+| Field             | Type              | What It Is |
+|-------------------|-------------------|------------|
+| `game.grid`       | `int[][]`         | The raw grid. `game.grid[row][col]` is `-1` or a bot ID. |
+| `game.cols`       | `int`             | Number of columns (grid width). |
+| `game.rows`       | `int`             | Number of rows (grid height). |
+| `game.bots`       | `ArrayList<Bot>`  | List of all bots in the game. |
+| `game.step`       | `int`             | Current simulation step (0, 1, 2...). |
+| `game.totalSteps` | `int`             | Step limit for the game. |
+
+**Cell query methods:**
+
+| Method | Returns | What It Does |
+|--------|---------|--------------|
+| `game.inBounds(row, col)` | `boolean` | Is this coordinate on the grid? |
+| `game.getOwner(row, col)` | `int` | Bot ID of owner, `-1` if unclaimed, `-2` if out of bounds. |
+| `game.isUnclaimed(row, col)` | `boolean` | Is this cell free to claim? |
+| `game.isClaimed(row, col)` | `boolean` | Has any bot claimed this cell? |
+| `game.isMine(row, col, this.id)` | `boolean` | Did I claim this cell? |
+
+**Spatial query methods:**
+
+| Method | Returns | What It Does |
+|--------|---------|--------------|
+| `game.countUnclaimed()` | `int` | Total free cells on the entire grid. |
+| `game.countUnclaimedInRegion(r1, c1, r2, c2)` | `int` | Free cells in a rectangular area (inclusive). |
+| `game.getNearestBot(this.x, this.y, this.id)` | `Bot` | Closest opponent by Manhattan distance. `null` if alone. |
+
+**Game state methods:**
+
+| Method | Returns | What It Does |
+|--------|---------|--------------|
+| `game.getProgress()` | `float` | 0.0 at start, 1.0 at end. |
+| `game.getBotCount()` | `int` | Number of bots in the game. |
+| `game.getBot(id)` | `Bot` | Look up any bot by ID. `null` if not found. |
+
+### Your Bot: `this`
+
+Inside `getNextMove()`, `this` is your bot. Here's what you can access:
+
+| Expression   | Type     | What It Gives You |
+|-------------|----------|-------------------|
+| `this.x`    | `int`    | Your current column. |
+| `this.y`    | `int`    | Your current row. |
+| `this.id`   | `int`    | Your bot ID (matches values in the grid). |
+| `this.score`| `int`    | How many cells you've claimed so far. |
+| `this.col`  | `color`  | Your bot's color. |
+
+### Bot Helper Methods
+
+These are built into the `Bot` class. Call them on `this` — they handle bounds-checking for you.
+
+| Method | Returns | What It Does |
+|--------|---------|--------------|
+| `canClaim(d)` | `boolean` | Is the cell in direction `d` unclaimed? |
+| `isInBounds(d)` | `boolean` | Is the cell in direction `d` on the grid? |
+| `peekCell(d)` | `int` | Who owns the cell in direction `d`? Returns `-1` (unclaimed), `-2` (out of bounds), or a bot ID. |
+| `getFreeDirs()` | `ArrayList<Direction>` | All directions that lead to unclaimed cells. |
+
+### Directions
+
+Four global constants you can return from `getNextMove()`:
+
+| Constant | `dx` | `dy` | Effect |
+|----------|------|------|--------|
+| `UP`     |  0   | -1   | Move up one row. |
+| `DOWN`   |  0   | +1   | Move down one row. |
+| `LEFT`   | -1   |  0   | Move left one column. |
+| `RIGHT`  | +1   |  0   | Move right one column. |
+
+Also available:
+- `DIRS` — array of all four directions: `[UP, DOWN, LEFT, RIGHT]`
+- `randomDir()` — returns a random direction
+
+---
 
 ## Strategies, Simple to Advanced
 
@@ -94,25 +163,20 @@ return randomDir();
 Wanders aimlessly. Claims some territory by accident. This is your baseline.
 
 ### Level 2: Greedy Neighbor
-Check your four neighbors. If any are unclaimed, go there.
+If any neighbor is unclaimed, go there. Never waste a step when there's free territory next to you.
 ```java
-for (Direction d : DIRS) {
-  int nx = this.x + d.dx;
-  int ny = this.y + d.dy;
-  if (nx >= 0 && nx < cols && ny >= 0 && ny < rows
-      && grid[ny][nx] == -1) {
-    return d;
-  }
+ArrayList<Direction> free = getFreeDirs();
+if (free.size() > 0) {
+  return free.get((int) random(free.size()));
 }
 return randomDir();
 ```
-Better than random — you never waste a step when there's free territory next to you.
 
 ### Level 3: Target a Location
 Pick a coordinate and move toward it. Good for claiming a specific region.
 ```java
-int targetX = cols / 2;
-int targetY = rows / 2;
+int targetX = game.cols / 2;
+int targetY = game.rows / 2;
 if (abs(targetX - this.x) > abs(targetY - this.y)) {
   return targetX > this.x ? RIGHT : LEFT;
 } else {
@@ -131,19 +195,33 @@ class SmartBot extends Bot {
     super(startX, startY, col, name);
   }
 
-  Direction getNextMove(int[][] grid, int cols, int rows) {
-    if (goingRight && this.x >= cols - 2) goingRight = false;
+  Direction getNextMove(GameInfo game) {
+    if (goingRight && this.x >= game.cols - 2) goingRight = false;
     if (!goingRight && this.x <= 1) goingRight = true;
     return goingRight ? RIGHT : LEFT;
   }
 }
 ```
 
-### Level 5: BFS / Pathfinding
+### Level 5: Avoid or Chase Opponents
+Use `game.getNearestBot()` to find the closest enemy and steer away from crowded areas — or toward them if you're feeling aggressive.
+```java
+Bot enemy = game.getNearestBot(this.x, this.y, this.id);
+if (enemy != null) {
+  // Move AWAY from nearest enemy
+  int dx = this.x - enemy.x;
+  int dy = this.y - enemy.y;
+  if (abs(dx) > abs(dy)) return dx > 0 ? RIGHT : LEFT;
+  else return dy > 0 ? DOWN : UP;
+}
+return randomDir();
+```
+
+### Level 6: BFS / Pathfinding
 Search the grid for the nearest unclaimed cell and take the first step toward it. Never waste a move.
 
-### Level 6: Strategic Analysis
-Count unclaimed cells in different regions. Steer toward the emptiest area. Avoid crowded zones where other bots are competing.
+### Level 7: Strategic Analysis
+Use `game.countUnclaimedInRegion()` to scan different quadrants. Steer toward the emptiest area. Adapt your strategy based on `game.getProgress()` — play aggressive early, defensive late.
 
 ## The OO Concepts in Play
 
@@ -151,10 +229,10 @@ Count unclaimed cells in different regions. Steer toward the emptiest area. Avoi
 Your class **extends** `Bot`. You get movement, rendering, scoring, and grid interaction without writing any of it. You only write the decision-making.
 
 ### Method Overriding
-`Bot` has a `getNextMove()` that returns a random direction. Your class **overrides** it with a smarter version. The game engine calls `getNextMove()` — it doesn't know or care which version runs. That's **polymorphism**.
+`Bot` has a `getNextMove()` that returns a random direction. Your class **overrides** it with a smarter version. The game engine calls `getNextMove()` — it doesn't know or care which version runs. That's **polymorphism**. But overriding is just the entry point — the real work is all the logic you build in your class to support that decision.
 
 ### Encapsulation
-You can't see or modify the engine code. You interact through a clean interface: the grid array, your position, and the direction you return. The engine handles everything else.
+You can't see or modify the engine code. You interact through a clean interface: the `GameInfo` object, your position, and the direction you return. The engine handles everything else.
 
 ### Constructors and `super()`
 Your constructor calls `super(startX, startY, col, name)` to initialize the base class fields. This is constructor chaining — your subclass adds its own setup on top of what the parent already does.
@@ -179,7 +257,7 @@ this.trailLength = 25;     // trail length (0 = off, max 40)
 - Landing on an unclaimed cell claims it and adds 1 to your score.
 - Landing on an already-claimed cell (yours or anyone's) does nothing.
 - Moving off the edge of the grid is clamped — you stay at the border.
-- The game ends when the grid is full or the step limit is reached.
+- The game runs for 120 seconds or until the grid is full.
 - Highest score wins. All bots play the full game — no elimination.
 
 ## What to Submit
