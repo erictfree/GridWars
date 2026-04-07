@@ -285,10 +285,10 @@ this.trailLength = 25;     // trail length (0 = off, max 40)
 Edit `TestConfig.pde` to set up your test match. This is the only file you need to change:
 
 ```java
-void configureTestBots() {
+void configureSmartBots() {
   addBot("FreemanEricBot", 1);   // your bot
-  addBot("TestBot", 3);          // 3 tough opponents
-  addBot("StarterBot", 2);       // 2 easy opponents
+  addBot("SmartBot", 3);          // 3 tough opponents
+  addBot("RandomBot", 2);       // 2 easy opponents
 }
 ```
 
@@ -298,8 +298,8 @@ Add one line per bot. The second number is how many copies to add. Press **R** t
 
 | Bot          | Strategy                   |
 | ------------ | -------------------------- |
-| `TestBot`    | Strong all-around opponent |
-| `StarterBot` | Random walk (easy)         |
+| `SmartBot`    | Strong all-around opponent |
+| `RandomBot` | Random walk (easy)         |
 
 ## Rules
 

@@ -23,26 +23,7 @@ class BotEntry {
     // Fall back to reference bot type
     switch (botType) {
       case 0:  return new RandomBot(x, y, col, name);
-      case 1:  return new GreedyBot(x, y, col, name);
-      case 2:  return new SpiralBot(x, y, col, name);
-      case 3:  return new FrontierBot(x, y, col, name);
-      case 4:  return new HunterBot(x, y, col, name);
-      case 5:  return new UltimateBot(x, y, col, name);
-      case 6:  return new ScavengerBot(x, y, col, name);
-      case 7:  return new ThiefBot(x, y, col, name);
-      case 8:  return new WallBot(x, y, col, name);
-      case 9:  return new ShadowBot(x, y, col, name);
-      case 10: return new DiagonalBot(x, y, col, name);
-      case 11: return new ZoneBot(x, y, col, name);
-      case 12: return new PulseBot(x, y, col, name);
-      case 13: return new FloodBot(x, y, col, name);
-      case 14: return new MigrateBot(x, y, col, name);
-      case 15: return new SprintBot(x, y, col, name);
-      case 16: return new HilbertBot(x, y, col, name);
-      case 17: return new VoronoiBot(x, y, col, name);
-      case 18: return new GradientBot(x, y, col, name);
-      case 19: return new StarterBot(x, y, col, name);
-      case 20: return new TestBot(x, y, col, name);
+      case 1:  return new SmartBot(x, y, col, name);
       default: return new RandomBot(x, y, col, name);
     }
   }

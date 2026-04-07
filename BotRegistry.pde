@@ -27,34 +27,8 @@ void addBot(String name, int count) {
 
 // ─────────────────────────────────────────────────────────────
 //  TOURNAMENT MODE — Press T to start bracket
+//  Add student bots here before tournament day
 // ─────────────────────────────────────────────────────────────
 void registerTournamentBots() {
   tournamentBotList = new ArrayList<BotEntry>();
-  String[] names = {
-    "DavisJames", "MillerMia", "WilsonEthan", "MooreAva", "TaylorLucas",
-    "AndersonIsla", "ThomasLeo", "JacksonZara", "WhiteNoah", "HarrisLily",
-    "MartinOwen", "ThompsonRuby", "GarciaHugo", "MartinezChloe", "RobinsonMax",
-    "ClarkEllie", "LewisOscar", "LeeFinn", "WalkerIvy", "HallAria",
-    "AllenLuke", "YoungGrace", "HernandezKai", "KingHarper", "WrightNova",
-    "LopezAxel", "HillLuna", "ScottMiles", "GreenSienna", "AdamsRiver",
-    "BakerWillow", "NelsonJude", "CarterStella", "MitchellFelix", "PerezHazel",
-    "RobertsLeo", "TurnerViolet", "PhillipsMilo", "CampbellPiper", "ParkerDante",
-    "EvansFreya", "EdwardsAtlas", "CollinsSage", "StewartOrion", "SanchezPearl",
-    "MorrisCole", "RogersJasper", "ReedClara", "CookEzra", "MorganMarigold",
-    "BellRonan", "MurphyWren", "BaileyTheo", "RiveraJuniper", "CooperAce",
-    "RichardsonDaisy", "CoxArcher", "HowardIris", "WardKnox", "TorresSiena",
-    "PetersonBlaze", "GrayElara", "RamirezCyrus", "WatsonOpal", "BrooksFinn",
-    "KellyWinter", "SandersRory", "PriceAurora", "BennettZane", "WoodLuna",
-    "BarnesIndigo", "RossQuinn", "HendersonSky", "ColemanJett", "JenkinsMarlow",
-    "PerrySable", "PowellEmber", "LongCaspian", "PattersonLark", "HughesFable",
-    "FloresHaven", "WashingtonBree", "ButlerSterling", "SimmonsFern", "FosterCove",
-    "GonzalesWynn", "BryantSloane", "AlexanderReed", "RussellMeadow", "GriffinTatum",
-    "DiazPeyton", "HayesCamden", "MyersCeleste", "FordKieran", "HamiltonBriar",
-    "GrahamSoleil", "SullivanDevon", "WallaceRobin", "WoodsNova", "ColeMarlow",
-    "WestJasmine", "OwensSage", "ReynoldsPhoenix", "FisherBlake", "EllisWinter",
-    "HarrisonCove"
-  };
-  for (int i = 0; i < names.length; i++) {
-    tournamentBotList.add(new BotEntry(names[i], PALETTE[i % PALETTE.length], i % 5));
-  }
 }

@@ -4,24 +4,19 @@
 //  Use addBot("BotName", count) to add bots to the test.
 //
 //  Available bots:
-//    "TestBot"      — strong all-around opponent
-//    "StarterBot"   — random walk (easy)
-//    "RandomBot"    — random walk
-//    "GreedyBot"    — claims nearest free cell
-//    "FrontierBot"  — BFS to nearest unclaimed cell
-//    "SpiralBot"    — outward spiral pattern
-//    "HunterBot"    — targets richest quadrant
+//    "SmartBot"     — strong all-around opponent
+//    "RandomBot"    — random walk (easy)
 //
 //  Your bot:
-//    Use your class name, e.g. "SmithEmmaBot"
+//    Use your class name, e.g. "FreemanEricBot"
 //
 //  Example:
-//    addBot("SmithEmmaBot", 1);   // your bot
-//    addBot("TestBot", 3);         // 3 tough opponents
-//    addBot("StarterBot", 2);      // 2 easy opponents
+//    addBot("FreemanEricBot", 1);   // your bot
+//    addBot("SmartBot", 3);          // 3 tough opponents
+//    addBot("RandomBot", 2);         // 2 easy opponents
 // ─────────────────────────────────────────────────────────────
 
 void configureTestBots() {
-  addBot("StarterBot", 5);
-  addBot("TestBot", 5);
+  addBot("RandomBot", 1);
+  addBot("SmartBot", 1);
 }

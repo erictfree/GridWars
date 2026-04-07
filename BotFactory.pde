@@ -1,130 +1,14 @@
-// ── Student Bot Factory ─────────────────────────────────────
-// Maps class names to instances. Add new student bots here.
+// ── Bot Factory ──────────────────────────────────────────────
+// Maps class names to instances.
 // Processing doesn't support reflection, so this is a manual lookup.
+// Add student bots here before the tournament.
 
 Bot createStudentBot(String className, int x, int y, color c) {
   switch (className) {
-    // ── Test bots ───────────────────────────────────────────
-    case "SmithEmma":       return new SmithEmma(x, y, c, className);
-    case "JohnsonLiam":     return new JohnsonLiam(x, y, c, className);
-    case "WilliamsNoah":    return new WilliamsNoah(x, y, c, className);
-    case "BrownOlivia":     return new BrownOlivia(x, y, c, className);
-    case "JonesSophia":     return new JonesSophia(x, y, c, className);
-    // ── Tournament bots ─────────────────────────────────────
-    case "DavisJames":      return new DavisJames(x, y, c, className);
-    case "MillerMia":       return new MillerMia(x, y, c, className);
-    case "WilsonEthan":     return new WilsonEthan(x, y, c, className);
-    case "MooreAva":        return new MooreAva(x, y, c, className);
-    case "TaylorLucas":     return new TaylorLucas(x, y, c, className);
-    case "AndersonIsla":    return new AndersonIsla(x, y, c, className);
-    case "ThomasLeo":       return new ThomasLeo(x, y, c, className);
-    case "JacksonZara":     return new JacksonZara(x, y, c, className);
-    case "WhiteNoah":       return new WhiteNoah(x, y, c, className);
-    case "HarrisLily":      return new HarrisLily(x, y, c, className);
-    case "MartinOwen":      return new MartinOwen(x, y, c, className);
-    case "ThompsonRuby":    return new ThompsonRuby(x, y, c, className);
-    case "GarciaHugo":      return new GarciaHugo(x, y, c, className);
-    case "MartinezChloe":   return new MartinezChloe(x, y, c, className);
-    case "RobinsonMax":     return new RobinsonMax(x, y, c, className);
-    case "ClarkEllie":      return new ClarkEllie(x, y, c, className);
-    case "LewisOscar":      return new LewisOscar(x, y, c, className);
-    case "LeeFinn":         return new LeeFinn(x, y, c, className);
-    case "WalkerIvy":       return new WalkerIvy(x, y, c, className);
-    case "HallAria":        return new HallAria(x, y, c, className);
-    case "AllenLuke":       return new AllenLuke(x, y, c, className);
-    case "YoungGrace":      return new YoungGrace(x, y, c, className);
-    case "HernandezKai":    return new HernandezKai(x, y, c, className);
-    case "KingHarper":      return new KingHarper(x, y, c, className);
-    case "WrightNova":      return new WrightNova(x, y, c, className);
-    case "LopezAxel":       return new LopezAxel(x, y, c, className);
-    case "HillLuna":        return new HillLuna(x, y, c, className);
-    case "ScottMiles":      return new ScottMiles(x, y, c, className);
-    case "GreenSienna":     return new GreenSienna(x, y, c, className);
-    case "AdamsRiver":      return new AdamsRiver(x, y, c, className);
-    case "BakerWillow":     return new BakerWillow(x, y, c, className);
-    case "NelsonJude":      return new NelsonJude(x, y, c, className);
-    case "CarterStella":    return new CarterStella(x, y, c, className);
-    case "MitchellFelix":   return new MitchellFelix(x, y, c, className);
-    case "PerezHazel":      return new PerezHazel(x, y, c, className);
-    case "RobertsLeo":      return new RobertsLeo(x, y, c, className);
-    case "TurnerViolet":    return new TurnerViolet(x, y, c, className);
-    case "PhillipsMilo":    return new PhillipsMilo(x, y, c, className);
-    case "CampbellPiper":   return new CampbellPiper(x, y, c, className);
-    case "ParkerDante":     return new ParkerDante(x, y, c, className);
-    case "EvansFreya":      return new EvansFreya(x, y, c, className);
-    case "EdwardsAtlas":    return new EdwardsAtlas(x, y, c, className);
-    case "CollinsSage":     return new CollinsSage(x, y, c, className);
-    case "StewartOrion":    return new StewartOrion(x, y, c, className);
-    case "SanchezPearl":    return new SanchezPearl(x, y, c, className);
-    case "MorrisCole":      return new MorrisCole(x, y, c, className);
-    case "RogersJasper":    return new RogersJasper(x, y, c, className);
-    case "ReedClara":       return new ReedClara(x, y, c, className);
-    case "CookEzra":        return new CookEzra(x, y, c, className);
-    case "MorganMarigold":  return new MorganMarigold(x, y, c, className);
-    case "BellRonan":       return new BellRonan(x, y, c, className);
-    case "MurphyWren":      return new MurphyWren(x, y, c, className);
-    case "BaileyTheo":      return new BaileyTheo(x, y, c, className);
-    case "RiveraJuniper":   return new RiveraJuniper(x, y, c, className);
-    case "CooperAce":       return new CooperAce(x, y, c, className);
-    case "RichardsonDaisy": return new RichardsonDaisy(x, y, c, className);
-    case "CoxArcher":       return new CoxArcher(x, y, c, className);
-    case "HowardIris":      return new HowardIris(x, y, c, className);
-    case "WardKnox":        return new WardKnox(x, y, c, className);
-    case "TorresSiena":     return new TorresSiena(x, y, c, className);
-    case "PetersonBlaze":   return new PetersonBlaze(x, y, c, className);
-    case "GrayElara":       return new GrayElara(x, y, c, className);
-    case "RamirezCyrus":    return new RamirezCyrus(x, y, c, className);
-    case "WatsonOpal":      return new WatsonOpal(x, y, c, className);
-    case "BrooksFinn":      return new BrooksFinn(x, y, c, className);
-    case "KellyWinter":     return new KellyWinter(x, y, c, className);
-    case "SandersRory":     return new SandersRory(x, y, c, className);
-    case "PriceAurora":     return new PriceAurora(x, y, c, className);
-    case "BennettZane":     return new BennettZane(x, y, c, className);
-    case "WoodLuna":        return new WoodLuna(x, y, c, className);
-    case "BarnesIndigo":    return new BarnesIndigo(x, y, c, className);
-    case "RossQuinn":       return new RossQuinn(x, y, c, className);
-    case "HendersonSky":    return new HendersonSky(x, y, c, className);
-    case "ColemanJett":     return new ColemanJett(x, y, c, className);
-    case "JenkinsMarlow":   return new JenkinsMarlow(x, y, c, className);
-    case "PerrySable":      return new PerrySable(x, y, c, className);
-    case "PowellEmber":     return new PowellEmber(x, y, c, className);
-    case "LongCaspian":     return new LongCaspian(x, y, c, className);
-    case "PattersonLark":   return new PattersonLark(x, y, c, className);
-    case "HughesFable":     return new HughesFable(x, y, c, className);
-    case "FloresHaven":     return new FloresHaven(x, y, c, className);
-    case "WashingtonBree":  return new WashingtonBree(x, y, c, className);
-    case "ButlerSterling":  return new ButlerSterling(x, y, c, className);
-    case "SimmonsFern":     return new SimmonsFern(x, y, c, className);
-    case "FosterCove":      return new FosterCove(x, y, c, className);
-    case "GonzalesWynn":    return new GonzalesWynn(x, y, c, className);
-    case "BryantSloane":    return new BryantSloane(x, y, c, className);
-    case "AlexanderReed":   return new AlexanderReed(x, y, c, className);
-    case "RussellMeadow":   return new RussellMeadow(x, y, c, className);
-    case "GriffinTatum":    return new GriffinTatum(x, y, c, className);
-    case "DiazPeyton":      return new DiazPeyton(x, y, c, className);
-    case "HayesCamden":     return new HayesCamden(x, y, c, className);
-    case "MyersCeleste":    return new MyersCeleste(x, y, c, className);
-    case "FordKieran":      return new FordKieran(x, y, c, className);
-    case "HamiltonBriar":   return new HamiltonBriar(x, y, c, className);
-    case "GrahamSoleil":    return new GrahamSoleil(x, y, c, className);
-    case "SullivanDevon":   return new SullivanDevon(x, y, c, className);
-    case "WallaceRobin":    return new WallaceRobin(x, y, c, className);
-    case "WoodsNova":       return new WoodsNova(x, y, c, className);
-    case "ColeMarlow":      return new ColeMarlow(x, y, c, className);
-    case "WestJasmine":     return new WestJasmine(x, y, c, className);
-    case "OwensSage":       return new OwensSage(x, y, c, className);
-    case "ReynoldsPhoenix": return new ReynoldsPhoenix(x, y, c, className);
-    case "FisherBlake":     return new FisherBlake(x, y, c, className);
-    case "EllisWinter":     return new EllisWinter(x, y, c, className);
-    case "HarrisonCove":    return new HarrisonCove(x, y, c, className);
-    // ── Built-in bots (available for test mode) ────────────
-    case "TestBot":         return new TestBot(x, y, c, className);
-    case "StarterBot":      return new StarterBot(x, y, c, className);
+    // ── Built-in bots ──────────────────────────────────────
+    case "SmartBot":        return new SmartBot(x, y, c, className);
     case "RandomBot":       return new RandomBot(x, y, c, className);
-    case "GreedyBot":       return new GreedyBot(x, y, c, className);
-    case "FrontierBot":     return new FrontierBot(x, y, c, className);
-    case "SpiralBot":       return new SpiralBot(x, y, c, className);
-    case "HunterBot":       return new HunterBot(x, y, c, className);
+    // ── Student bots (add before tournament) ────────────────
     default: return null;
   }
 }

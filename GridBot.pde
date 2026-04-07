@@ -827,8 +827,8 @@ void keyPressed() {
     }
   }
 
-  // B = beast mode splash (admin only)
-  if ((key == 'b' || key == 'B') && adminUnlocked) {
+  // B = beast mode splash (admin only, needs bots)
+  if ((key == 'b' || key == 'B') && adminUnlocked && tournamentBotList.size() > 0) {
     tournamentMode = false;
     beastMode = true;
     beastSplash = true;
@@ -838,8 +838,8 @@ void keyPressed() {
     fadeToPreMusic = true;
   }
 
-  // T = start tournament mode (admin only)
-  if ((key == 't' || key == 'T') && adminUnlocked) {
+  // T = start tournament mode (admin only, needs bots)
+  if ((key == 't' || key == 'T') && adminUnlocked && tournamentBotList.size() > 1) {
     tournamentMode = true;
     beastMode = false;
     beastSplash = false;
