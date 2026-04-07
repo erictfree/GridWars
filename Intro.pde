@@ -50,32 +50,20 @@ void drawBeastSplash() {
   float cx = width / 2.0;
   float fastPulse = 0.5 + 0.5 * sin(stateTimer * 0.2);
 
-  // Subtitle
-  fill(0, 160);
-  textSize(20);
-  textAlign(PConstants.CENTER, PConstants.CENTER);
-  text(tournamentBotList.size() + " BOTS  \u00b7  ONE GRID  \u00b7  NO MERCY", cx + 2, height * 0.68 + 2);
-  fill(255, 220);
-  text(tournamentBotList.size() + " BOTS  \u00b7  ONE GRID  \u00b7  NO MERCY", cx, height * 0.68);
-
-  // "PRESS SPACE" — big flashing
-  boolean blink = (stateTimer % 45) < 30;
-  if (blink) {
-    fill(255, 255, 0, 30);
-    textSize(28);
-    text("PRESS SPACE TO UNLEASH", cx, height * 0.90);
-    fill(255, 255, 0, 200 + 55 * fastPulse);
-    textSize(26);
-    text("PRESS SPACE TO UNLEASH", cx, height * 0.90);
+  // ── Scanline overlay ──
+  noStroke();
+  for (int y = 0; y < height; y += 4) {
+    fill(0, 15);
+    rect(0, y, width, 2);
   }
+
+  // ── Credits scroll — start lower to clear beast mode header ──
+  drawCreditsScroll(cx, fastPulse, height * 0.48);
 }
 
 void drawTestIntro() {
   float cx = width / 2.0;
-  float pulse = 0.7 + 0.3 * sin(stateTimer * 0.08);
   float fastPulse = 0.5 + 0.5 * sin(stateTimer * 0.2);
-  float t = stateTimer * 0.05;
-  int n = testBotList.size();
 
   // ── Scanline overlay ──
   noStroke();
@@ -84,210 +72,209 @@ void drawTestIntro() {
     rect(0, y, width, 2);
   }
 
-  // ── Arcade panel ──
-  int rosterCols = (n > 14) ? 3 : (n > 7) ? 2 : 1;
-  float colW = (n > 14) ? 260 : 280;
-  float panelW = max(680, rosterCols * colW + 100);
-  float panelH = height * 0.48;
-  float panelX = cx - panelW / 2;
-  float panelY = height * 0.32;
-  drawArcadePanel(panelX, panelY, panelW, panelH, arcadeBlue, pulse);
+  if (testIntroPhase == 0) {
+    drawCreditsScroll(cx, fastPulse, height * 0.34);
+  } else {
+    contenderRevealTimer++;
+    drawContenderReveal(cx, fastPulse);
+    // Auto-start after 180 frames (~3 seconds)
+    if (contenderRevealTimer > 180) {
+      gameState = 1;
+      playTestMusic();
+      testIntroPhase = 0;
+    }
+  }
+}
 
-  // ── "CONTENDERS" title — neon hot pink ──
+// ── Phase 0: Star Wars-style credits scroll ─────────────────
+void drawCreditsScroll(float cx, float fastPulse, float clipTop) {
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  float titleY = panelY + 40;
-  drawNeonText("C O N T E N D E R S", cx, titleY, 22, color(255, 0, 128), t, fastPulse);
 
-  // ── Divider ──
-  float divY = titleY + 24;
-  drawRetroDiv(cx, divY, panelW / 2 - 40, pulse);
+  // Clip region — below header, above controls
+  float clipBot = height * 0.90;
+  clip(0, (int) clipTop, width, (int)(clipBot - clipTop));
 
-  // ── Bot roster ──
+  float lineH = 34;
+  float sectionGap = 50;
+  float studentLineH = lineH - 4;
+
+  // Calculate total content height — must match actual drawing below
+  float contentH = (lineH + 10) + lineH + sectionGap       // title + subtitle + gap
+    + lineH + lineH + sectionGap                             // instructor section
+    + lineH + (creditsStaff.length - 1) * lineH + sectionGap // TAs
+    + lineH + creditsStudents.length * studentLineH;         // students
+  // Add visible area height so last name scrolls fully off before restart
+  float totalH = contentH + (clipBot - clipTop);
+
+  // Scroll speed: 0.8 px/frame, start at top of clip region, loop
+  float rawScroll = stateTimer * 0.8;
+  float scrollY = clipTop + 10 - (rawScroll % totalH);
+  float y = scrollY;
+
+  // ── Title ──
+  textSize(28);
+  fill(255, 215, 0, 40);
+  text("A E T 3 1 0", cx + 1, y + 1);
+  fill(255, 215, 0);
+  text("A E T 3 1 0", cx, y);
+  y += lineH + 10;
+
+  textSize(14);
+  fill(0, 255, 255);
+  text("Grid Wars  \u00b7  Spring 2026", cx, y);
+  y += sectionGap;
+
+  // ── Instructor ──
+  textSize(12);
+  fill(255, 215, 0, 150);
+  text("I N S T R U C T O R", cx, y);
+  y += lineH;
+
+  textSize(20);
+  fill(255, 215, 0);
+  text("Eric Freeman, PhD", cx, y);
+  y += sectionGap;
+
+  // ── Teaching Assistants ──
+  textSize(12);
+  fill(0, 255, 255, 150);
+  text("T E A C H I N G   A S S I S T A N T S", cx, y);
+  y += lineH;
+
+  textSize(18);
+  fill(0, 255, 255);
+  for (int i = 1; i < creditsStaff.length; i++) {
+    text(creditsStaff[i], cx, y);
+    y += lineH;
+  }
+  y += sectionGap - lineH;
+
+  // ── Students ──
+  textSize(12);
+  fill(255, 0, 128, 150);
+  text("S T U D E N T S", cx, y);
+  y += lineH;
+
+  textSize(16);
+  fill(180, 190, 200);
+  for (String name : creditsStudents) {
+    text(name, cx, y);
+    y += lineH - 4;
+  }
+
+  // Remove clip before drawing fixed UI
+  noClip();
+
+  // ── "PRESS SPACEBAR" fixed at bottom ──
+  if ((frameCount % 50) < 35) {
+    textAlign(PConstants.CENTER, PConstants.CENTER);
+    fill(255, 255, 0, 20);
+    textSize(26);
+    text("PRESS SPACEBAR", cx + 1, height * 0.95 + 1);
+    fill(255, 255, 0, 170 + 75 * fastPulse);
+    text("PRESS SPACEBAR", cx, height * 0.95);
+  }
+}
+
+// ── Phase 1: Contenders reveal (after space pressed) ────────
+void drawContenderReveal(float cx, float fastPulse) {
+  float pulse = 0.7 + 0.3 * sin(contenderRevealTimer * 0.08);
+  int n = testBotList.size();
+
+  // ── Subtle dark overlay for readability ──
+  noStroke();
+  fill(0, 100);
+  rect(0, height * 0.34, width, height * 0.62);
+
+  // ── "CONTENDERS" — below the header ──
+  textAlign(PConstants.CENTER, PConstants.CENTER);
+  float titleY = height * 0.40;
+  textSize(24);
+  fill(255, 0, 128, 40);
+  text("C O N T E N D E R S", cx + 1, titleY + 1);
+  text("C O N T E N D E R S", cx - 1, titleY - 1);
+  fill(255, 0, 128, 200 + 55 * fastPulse);
+  text("C O N T E N D E R S", cx, titleY);
+
+  // ── Dividers — cyan/magenta ──
+  float divY = titleY + 22;
+  stroke(0, 255, 255, 70 * pulse);
+  strokeWeight(1);
+  line(cx - 300, divY, cx + 300, divY);
+  stroke(255, 0, 255, 35 * pulse);
+  line(cx - 300, divY + 3, cx + 300, divY + 3);
+  noStroke();
+
+  // ── Bot roster — centered, spacious ──
+  int rosterCols = (n > 14) ? 3 : (n > 7) ? 2 : 1;
+  float colW = (n > 14) ? 340 : 400;
   int perCol = (int) ceil((float) n / rosterCols);
   float rosterX = cx - (rosterCols * colW) / 2;
-  float startY = divY + 20;
-  float rowH = min(36, (panelY + panelH - startY - 100) / max(1, perCol));
+  float startY = divY + 30;
+  float availH = height * 0.80 - startY;
+  float rowH = min(52, availH / max(1, perCol));
 
-  int botsToShow = min(n, (int)(stateTimer * n / 50.0) + 1);
+  int botsToShow = min(n, (int)(contenderRevealTimer * n / 40.0) + 1);
 
   for (int i = 0; i < botsToShow; i++) {
     int c = i / perCol;
     int row = i % perCol;
-    float bx = rosterX + c * colW + 30;
+    float bx = rosterX + c * colW + 50;
     float by = startY + row * rowH;
     BotEntry entry = testBotList.get(i);
 
     // Entrance flash
-    int appearFrame = (int)(i * 50.0 / n);
-    int age = stateTimer - appearFrame;
-    if (age >= 0 && age < 8) {
-      float flash = 1.0 - (float) age / 8;
-      fill(entry.col, flash * 50);
+    int appearFrame = (int)(i * 40.0 / n);
+    int age = contenderRevealTimer - appearFrame;
+    if (age >= 0 && age < 10) {
+      float flash = 1.0 - (float) age / 10;
+      fill(entry.col, flash * 60);
       noStroke();
-      rect(bx - 8, by - 2, colW - 40, rowH - 2, 4);
+      rect(bx - 12, by + 2, colW - 70, rowH - 6, 4);
     }
 
-    // Rank number — dim cyan
-    textAlign(PConstants.RIGHT, PConstants.TOP);
-    fill(0, 200, 255, 100);
-    textSize(11);
-    text(nf(i + 1, 2) + ".", bx - 2, by + 5);
+    // Rank number
+    textAlign(PConstants.RIGHT, PConstants.CENTER);
+    fill(0, 200, 255, 80);
+    textSize(13);
+    text(nf(i + 1, 2) + ".", bx - 6, by + rowH / 2);
 
-    // Color swatch with glow
-    fill(red(entry.col), green(entry.col), blue(entry.col), 40);
+    // Color swatch
+    float swatchSz = min(22, rowH - 14);
+    fill(red(entry.col), green(entry.col), blue(entry.col), 35);
     noStroke();
-    rect(bx, by + 1, 22, 22, 2);
+    rect(bx, by + (rowH - swatchSz) / 2 - 1, swatchSz + 4, swatchSz + 4, 3);
     fill(entry.col);
-    rect(bx + 2, by + 3, 18, 18);
+    rect(bx + 2, by + (rowH - swatchSz) / 2 + 1, swatchSz, swatchSz);
 
-    // Name
-    textSize(15);
-    textAlign(PConstants.LEFT, PConstants.TOP);
-    fill(0, 160);
-    text(displayName(entry.name), bx + 29, by + 4);
-    fill(entry.col);
-    text(displayName(entry.name), bx + 28, by + 3);
-  }
-
-  // ── "VS" badge for 2-column layout ──
-  if (rosterCols == 2 && botsToShow >= 2) {
-    float vsY = startY + (perCol * rowH) / 2 - 10;
+    // Name — large
+    textSize(20);
+    textAlign(PConstants.LEFT, PConstants.CENTER);
     fill(0, 140);
-    noStroke();
-    ellipse(cx, vsY, 46, 46);
-    stroke(255, 255, 0, 150 * pulse);
-    strokeWeight(2);
-    noFill();
-    ellipse(cx, vsY, 46, 46);
-    noStroke();
-    fill(255, 255, 0, 210 * pulse);
-    textSize(14);
-    textAlign(PConstants.CENTER, PConstants.CENTER);
-    text("VS", cx, vsY);
+    text(displayName(entry.name), bx + swatchSz + 14, by + rowH / 2 + 1);
+    fill(entry.col);
+    text(displayName(entry.name), bx + swatchSz + 13, by + rowH / 2);
   }
 
   // ── Tagline ──
-  float tagY = panelY + panelH - 60;
+  float tagY = height * 0.84;
   textAlign(PConstants.CENTER, PConstants.CENTER);
-  fill(0, 140);
+  fill(0, 120);
   textSize(18);
   text(n + " BOTS ENTER  \u00b7  1 BOT WINS", cx + 2, tagY + 2);
-  fill(255, 210);
+  fill(255, 200);
   text(n + " BOTS ENTER  \u00b7  1 BOT WINS", cx, tagY);
 
-  // ── "PRESS SPACE" ──
-  float promptY = panelY + panelH - 28;
-  drawFlashPrompt("PRESS SPACE TO START", cx, promptY, fastPulse);
-
-  // ── Controls hint ──
-  fill(70);
-  textSize(10);
-  textAlign(PConstants.CENTER, PConstants.CENTER);
-  text("R = RESTART  |  T = TOURNAMENT  |  L = LEADERBOARD", cx, panelY + panelH + 18);
-
-  // ── Credits ticker at bottom ──
-  drawCreditsTicker();
-}
-
-// ── Credits ticker — scrolling strip at bottom of screen ────
-void drawCreditsTicker() {
-  float stripH = 28;
-  float stripY = height - stripH;
-  float textY = stripY + stripH / 2;
-
-  // Dark strip background
-  noStroke();
-  fill(0, 200);
-  rect(0, stripY, width, stripH);
-
-  // Thin cyan line on top
-  stroke(0, 255, 255, 80);
-  strokeWeight(1);
-  line(0, stripY, width, stripY);
-  noStroke();
-
-  // Measure total width on first call
-  textSize(10);
-  float sep = textWidth("  \u2605  ");
-  float totalW = measureTickerWidth(sep);
-
-  // Init scroll position
-  if (creditsScrollX == 0 && stateTimer < 2) {
-    creditsScrollX = width;
-  }
-
-  // Scroll
-  creditsScrollX -= 1.0;
-  if (creditsScrollX < -totalW) {
-    creditsScrollX += totalW;
-  }
-
-  // Draw twice for seamless loop
-  drawTickerPass(creditsScrollX, textY, sep);
-  drawTickerPass(creditsScrollX + totalW, textY, sep);
-}
-
-float measureTickerWidth(float sep) {
-  textSize(10);
-  float w = 0;
-  for (String s : creditsHeader)  w += textWidth(s) + sep;
-  for (String s : creditsStaff)   w += textWidth(s) + sep;
-  for (String s : creditsStudents) w += textWidth(s) + sep;
-  return w;
-}
-
-void drawTickerPass(float startX, float y, float sep) {
-  textSize(10);
-  textAlign(PConstants.LEFT, PConstants.CENTER);
-  float x = startX;
-
-  color gold   = color(255, 215, 0);
-  color cyan   = color(0, 220, 255);
-  color silver = color(150, 160, 175);
-  color dimPink = color(255, 0, 128, 80);
-
-  // Header
-  for (String s : creditsHeader) {
-    if (x + textWidth(s) > 0 && x < width) {
-      fill(gold);
-      text(s, x, y);
-    }
-    x += textWidth(s);
-    if (x + sep > 0 && x < width) {
-      fill(dimPink);
-      text("  \u2605  ", x, y);
-    }
-    x += sep;
-  }
-
-  // Staff
-  for (String s : creditsStaff) {
-    if (x + textWidth(s) > 0 && x < width) {
-      fill(cyan);
-      text(s, x, y);
-    }
-    x += textWidth(s);
-    if (x + sep > 0 && x < width) {
-      fill(dimPink);
-      text("  \u2605  ", x, y);
-    }
-    x += sep;
-  }
-
-  // Students
-  for (String s : creditsStudents) {
-    if (x + textWidth(s) > 0 && x < width) {
-      fill(silver);
-      text(s, x, y);
-    }
-    x += textWidth(s);
-    if (x + sep > 0 && x < width) {
-      fill(dimPink);
-      text("  \u2605  ", x, y);
-    }
-    x += sep;
+  // ── "GET READY" flashing ──
+  if ((contenderRevealTimer % 45) < 30) {
+    textSize(26);
+    fill(255, 255, 0, 25);
+    text("GET READY", cx + 1, height * 0.91 + 1);
+    fill(255, 255, 0, 180 + 75 * fastPulse);
+    text("GET READY", cx, height * 0.91);
   }
 }
+
 
 // ── Tournament intro (used during bracket play) ─────────────
 void drawIntro() {

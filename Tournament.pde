@@ -310,9 +310,6 @@ void rebuildNextRound() {
 // ── Tournament draw functions ───────────────────────────────
 
 void drawBracketView() {
-  noStroke();
-  fill(0, 220);
-  rect(0, 0, width, height);
 
   float cx = width / 2.0;
   int numRounds = rounds.size();

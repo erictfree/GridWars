@@ -7,11 +7,22 @@ ArrayList<BotEntry> tournamentBotList;
 
 // ─────────────────────────────────────────────────────────────
 //  TEST MODE — Press R to restart
+//  Students configure their test match in TestConfig.pde
 // ─────────────────────────────────────────────────────────────
+int addBotColorIdx = 0;
+
 void registerTestBots() {
   testBotList = new ArrayList<BotEntry>();
-  testBotList.add(new BotEntry("BotStarter", PALETTE[0], 19));
-  testBotList.add(new BotEntry("BotTest",    PALETTE[1], 20));
+  addBotColorIdx = 0;
+  configureTestBots();  // defined in TestConfig.pde
+}
+
+void addBot(String name, int count) {
+  for (int i = 0; i < count; i++) {
+    color c = PALETTE[addBotColorIdx % PALETTE.length];
+    addBotColorIdx++;
+    testBotList.add(new BotEntry(name, c, 0));
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

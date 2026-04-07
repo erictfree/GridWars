@@ -117,6 +117,14 @@ Bot createStudentBot(String className, int x, int y, color c) {
     case "FisherBlake":     return new FisherBlake(x, y, c, className);
     case "EllisWinter":     return new EllisWinter(x, y, c, className);
     case "HarrisonCove":    return new HarrisonCove(x, y, c, className);
+    // ── Built-in bots (available for test mode) ────────────
+    case "TestBot":         return new TestBot(x, y, c, className);
+    case "StarterBot":      return new StarterBot(x, y, c, className);
+    case "RandomBot":       return new RandomBot(x, y, c, className);
+    case "GreedyBot":       return new GreedyBot(x, y, c, className);
+    case "FrontierBot":     return new FrontierBot(x, y, c, className);
+    case "SpiralBot":       return new SpiralBot(x, y, c, className);
+    case "HunterBot":       return new HunterBot(x, y, c, className);
     default: return null;
   }
 }

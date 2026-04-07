@@ -1,5 +1,9 @@
 import processing.sound.*;
 
+// ── Display — set to false for smaller screens ──────────────
+boolean HIGH_RES = true;
+boolean SAVE_SCREENSHOTS = false;
+
 // ── Constants ────────────────────────────────────────────────
 final int NUM_THEMES = 2;
 final int TARGET_ROWS = 150;  // desired row count — COLS computed to fill width
@@ -23,11 +27,21 @@ int gameStartMillis;
 // Background images
 PImage bgImg;
 PImage beastBgImg;
+PImage tourneyBgImg;
 boolean beastMode = false;
 boolean beastSplash = false;
 boolean showLeaderboard = true;
 boolean showMagnifier = false;
+boolean adminUnlocked = false;
+String adminBuffer = "";
+int adminFlashFrame = -999;
 float creditsScrollX = 0;
+int testIntroPhase = 0;    // 0 = credits scroll, 1 = contenders reveal
+int contenderRevealTimer = 0;
+boolean fadeOutMusic = false;
+int fadeOutFrame = 0;
+final int FADE_FRAMES = 90;  // ~1.5 sec fade
+boolean fadeToPreMusic = false;  // start pre music after fade
 
 // ── Retro arcade color palette ──────────────────────────────
 // Drawn from Pac-Man, Galaga, Donkey Kong, Dig Dug, Q*bert, etc.
@@ -77,6 +91,8 @@ int lastHistStep = 0;
 // ── Audio ───────────────────────────────────────────────────
 SoundFile music;
 boolean musicMuted = false;
+int lastTestTrack = 0;
+int lastPreTrack = 0;
 
 // ── UI colors (retro arcade) ────────────────────────────────
 color unclaimedColor, sidebarBg, hudBg, arcadeBlue;
@@ -89,8 +105,8 @@ void setup() {
   pixelDensity(1);
   frameRate(60);
 
-  int winW = 1770;
-  int winH = 1100;
+  int winW = HIGH_RES ? 1770 : 1200;
+  int winH = HIGH_RES ? 1100 : 750;
 
   // Equal padding on all sides
   TOP_MARGIN = MARGIN;
@@ -112,6 +128,10 @@ void setup() {
   beastBgImg = loadImage("beastbackground.jpg");
   if (beastBgImg != null) {
     beastBgImg.resize(winW, winH);
+  }
+  tourneyBgImg = loadImage("headertournament.png");
+  if (tourneyBgImg != null) {
+    tourneyBgImg.resize(winW, winH);
   }
 
   // Init directions
@@ -144,15 +164,30 @@ void setup() {
   // Start in test mode by default
   tournamentMode = false;
   initGame();
+  playPreMusic();
+}
+
+void playPreMusic() {
+  if (music != null && music.isPlaying()) {
+    music.stop();
+  }
+  int pick;
+  do {
+    pick = (int) random(1, 3);  // 1–2
+  } while (pick == lastPreTrack);
+  lastPreTrack = pick;
+  music = new SoundFile(this, "pre" + pick + ".mp3");
+  music.amp(musicMuted ? 0 : 0.9);
+  music.loop();
 }
 
 void playRandomTheme() {
   if (music != null && music.isPlaying()) {
     music.stop();
   }
-  int pick = (int) random(1, NUM_THEMES + 1);  // 1–9
+  int pick = (int) random(1, NUM_THEMES + 1);
   music = new SoundFile(this, "theme" + pick + ".mp3");
-  music.amp(0.9);
+  music.amp(musicMuted ? 0 : 0.9);
   music.loop();
 }
 
@@ -160,9 +195,13 @@ void playTestMusic() {
   if (music != null && music.isPlaying()) {
     music.stop();
   }
-  int pick = (int) random(1, 5);  // 1–4
+  int pick;
+  do {
+    pick = (int) random(1, 8);  // 1–7
+  } while (pick == lastTestTrack);
+  lastTestTrack = pick;
   music = new SoundFile(this, "test" + pick + ".mp3");
-  music.amp(0.9);
+  music.amp(musicMuted ? 0 : 0.9);
   music.loop();
 }
 
@@ -211,6 +250,8 @@ void initGame() {
   gameState  = 0;
   stateTimer = 0;
   gameStartMillis = 0;
+  testIntroPhase = 0;
+  contenderRevealTimer = 0;
 
   // Fresh palette each run
   randomizePalette();
@@ -289,7 +330,7 @@ void initBeastMode() {
   initEffects();
   stopMusic();
   music = new SoundFile(this, "beast.mp3");
-  music.amp(0.9);
+  music.amp(musicMuted ? 0 : 0.9);
   music.loop();
 }
 
@@ -306,6 +347,21 @@ void draw() {
   stateTimer++;
   tourneyTimer++;
 
+  // ── Music fade out ──
+  if (fadeOutMusic && music != null) {
+    fadeOutFrame++;
+    float vol = max(0, 0.9 * (1.0 - (float) fadeOutFrame / FADE_FRAMES));
+    if (!musicMuted) music.amp(vol);
+    if (fadeOutFrame >= FADE_FRAMES) {
+      fadeOutMusic = false;
+      music.stop();
+      if (fadeToPreMusic) {
+        fadeToPreMusic = false;
+        playPreMusic();
+      }
+    }
+  }
+
   // ── Background ────────────────────────────────────────────
   // Use background image on non-gameplay screens, black during gameplay
   boolean showBg = false;
@@ -320,6 +376,8 @@ void draw() {
 
   if (showBg && beastMode && !tournamentMode && beastBgImg != null) {
     image(beastBgImg, 0, 0);
+  } else if (showBg && tournamentMode && tourneyBgImg != null) {
+    image(tourneyBgImg, 0, 0);
   } else if (showBg && bgImg != null) {
     image(bgImg, 0, 0);
   } else {
@@ -332,6 +390,7 @@ void draw() {
       image(beastBgImg, 0, 0);
     }
     drawBeastSplash();
+    drawAdminFlash();
     drawMuteButton();
     return;
   }
@@ -339,6 +398,7 @@ void draw() {
   // ── Tournament mode ───────────────────────────────────────
   if (tournamentMode) {
     drawTournamentMode();
+    drawAdminFlash();
     drawMuteButton();
     return;
   }
@@ -346,6 +406,7 @@ void draw() {
   // ── Test mode: wait for space, then play ───────────────────
   if (gameState == 0 && !beastMode) {
     drawTestIntro();
+    drawAdminFlash();
     drawMuteButton();
     return;
   }
@@ -360,6 +421,7 @@ void draw() {
   } else {
     drawPlayArea();
   }
+  drawAdminFlash();
   drawMuteButton();
 }
 
@@ -499,10 +561,12 @@ void drawPlayArea() {
   // Save just the game grid (no bots, no overlays)
   if (needsScreenshot) {
     needsScreenshot = false;
-    int imgW = COLS * CELL;
-    int imgH = ROWS * CELL;
-    PImage gameImg = get(MARGIN + INSET, TOP_MARGIN + MARGIN + INSET, imgW, imgH);
-    gameImg.save(sketchPath("images/game-" + year() + nf(month(),2) + nf(day(),2) + "-" + nf(hour(),2) + nf(minute(),2) + nf(second(),2) + ".png"));
+    if (SAVE_SCREENSHOTS) {
+      int imgW = COLS * CELL;
+      int imgH = ROWS * CELL;
+      PImage gameImg = get(MARGIN + INSET, TOP_MARGIN + MARGIN + INSET, imgW, imgH);
+      gameImg.save(sketchPath("images/game-" + year() + nf(month(),2) + nf(day(),2) + "-" + nf(hour(),2) + nf(minute(),2) + nf(second(),2) + ".png"));
+    }
   }
 
   // Sidebar — overlays on top of grid, toggled with L
@@ -651,6 +715,18 @@ Direction randomDir() {
   return DIRS[(int) random(DIRS.length)];
 }
 
+// ── Admin unlock flash ──────────────────────────────────────
+void drawAdminFlash() {
+  int age = frameCount - adminFlashFrame;
+  if (age >= 0 && age < 90) {
+    float alpha = age < 10 ? age * 25.5 : max(0, 255 * (1.0 - (float)(age - 10) / 80));
+    textAlign(PConstants.CENTER, PConstants.CENTER);
+    fill(0, 255, 128, alpha);
+    textSize(22);
+    text("ADMIN UNLOCKED", width / 2, height / 2);
+  }
+}
+
 // ── Mute button (lower-left corner) ─────────────────────────
 final int MUTE_X = 14, MUTE_Y_OFF = 14, MUTE_SZ = 22;
 
@@ -721,6 +797,14 @@ void keyPressed() {
     beastMode = false;
     beastSplash = false;
     initGame();
+    if (music != null && music.isPlaying()) {
+      fadeOutMusic = true;
+      fadeOutFrame = 0;
+      fadeToPreMusic = true;
+    } else {
+      fadeOutMusic = false;
+      playPreMusic();
+    }
   }
 
   // L = toggle leaderboard
@@ -733,23 +817,37 @@ void keyPressed() {
     showMagnifier = !showMagnifier;
   }
 
-  // B = beast mode splash
-  if (key == 'b' || key == 'B') {
+  // Admin code: type 1983 to unlock T and B
+  if (key >= '0' && key <= '9') {
+    adminBuffer += key;
+    if (adminBuffer.length() > 4) adminBuffer = adminBuffer.substring(adminBuffer.length() - 4);
+    if (adminBuffer.equals("1983") && !adminUnlocked) {
+      adminUnlocked = true;
+      adminFlashFrame = frameCount;
+    }
+  }
+
+  // B = beast mode splash (admin only)
+  if ((key == 'b' || key == 'B') && adminUnlocked) {
     tournamentMode = false;
     beastMode = true;
     beastSplash = true;
     stateTimer = 0;
-    stopMusic();
+    fadeOutMusic = true;
+    fadeOutFrame = 0;
+    fadeToPreMusic = true;
   }
 
-  // T = start tournament mode
-  if (key == 't' || key == 'T') {
+  // T = start tournament mode (admin only)
+  if ((key == 't' || key == 'T') && adminUnlocked) {
     tournamentMode = true;
     beastMode = false;
     beastSplash = false;
     stateTimer = 0;
     tourneyTimer = 0;
-    stopMusic();
+    fadeOutMusic = true;
+    fadeOutFrame = 0;
+    fadeToPreMusic = true;
     initTournament();
   }
 
@@ -762,8 +860,19 @@ void keyPressed() {
 
   // SPACE = start test / restart after game over / advance tournament
   if (key == ' ' && !tournamentMode && !beastMode && gameState == 0) {
-    gameState = 1;  // start playing
-    playTestMusic();
+    if (testIntroPhase == 0) {
+      // Show contenders — start fade out
+      testIntroPhase = 1;
+      contenderRevealTimer = 0;
+      fadeOutMusic = true;
+      fadeOutFrame = 0;
+    } else {
+      // Already showing contenders — start now
+      gameState = 1;
+      fadeOutMusic = false;
+      playTestMusic();
+      testIntroPhase = 0;
+    }
     return;
   }
   if (key == ' ' && beastMode && gameOver) {
@@ -789,7 +898,9 @@ void keyPressed() {
       if (more) {
         tourneyPhase = 0;  // show next bracket
         tourneyTimer = 0;
-        stopMusic();
+        fadeOutMusic = true;
+        fadeOutFrame = 0;
+        fadeToPreMusic = true;
       } else {
         // Tournament over
         tourneyPhase = 4;
