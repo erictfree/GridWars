@@ -38,12 +38,12 @@
 //    Use your class name, e.g. "FreemanEricBot"
 //
 //  Example:
-//    addBot("FreemanEricBot", 1);   // your bot
+//    addBot("LastnameFirstnameBot", 1);   // your bot
 //    addBot("SmartBot", 3);          // 3 tough opponents
 //    addBot("RandomBot", 2);         // 2 easy opponents
 // ─────────────────────────────────────────────────────────────
 
 void configureTestBots() {
-  addBot("RandomBot", 1);
-  addBot("SmartBot", 1);
+  addBot("RandomBot", 2);
+  addBot("SmartBot", 2);
 }

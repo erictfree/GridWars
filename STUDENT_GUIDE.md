@@ -310,6 +310,7 @@ Add one line per bot. The second number is how many copies to add. Press **R** t
 - Moving off the edge of the grid is clamped — you stay at the border.
 - The game runs for 120 seconds or until the grid is full.
 - Highest score wins. All bots play the full game — no elimination.
+- **Performance rule:** Your bot must not significantly degrade the game's frame rate. If your `getNextMove()` method is too computationally expensive (e.g., scanning the entire grid multiple times per step, running unbounded loops), your bot will be disqualified. Keep your logic efficient — the game needs to run smoothly for everyone.
 
 ## What to Submit
 
