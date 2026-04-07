@@ -1,6 +1,6 @@
 # GridWars
 
-A real-time bot-vs-bot territory claiming game written by Eric Freeman in [Processing](https://processing.org/) for **AET 310: Creative Coding** at the University of Texas at Austin.
+A real-time bot-vs-bot territory claiming game built in [Processing](https://processing.org/) by Professor Eric Freeman for students to explore object-oriented programming in **AET 310: Creative Coding** at the University of Texas at Austin.
 
 Students write a single bot class that moves around a shared grid, claiming cells by color. The bot with the most territory at the end wins. The game teaches object-oriented programming through practical game design — students override one method, but can build strategies as sophisticated as they want.
 
