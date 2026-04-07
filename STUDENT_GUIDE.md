@@ -21,12 +21,12 @@ That's inheritance in action: reuse what exists, replace what you want to change
 
 You submit **one file** named `LastnameFirstnameBot.pde`. The class name inside must match the file name.
 
-For example, if your name is Eric Freeman, your file is `FreemanEricBot.pde`:
+For example, if your name is Jane Smith, your file is `SmithJaneBot.pde`:
 
 ```java
-class FreemanEricBot extends Bot {
+class SmithJaneBot extends Bot {
 
-  FreemanEricBot(int startX, int startY, color col, String name) {
+  SmithJaneBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
@@ -286,7 +286,7 @@ Edit `TestConfig.pde` to set up your test match. This is the only file you need 
 
 ```java
 void configureSmartBots() {
-  addBot("FreemanEricBot", 1);   // your bot
+  addBot("SmithJaneBot", 1);   // your bot
   addBot("SmartBot", 3);          // 3 tough opponents
   addBot("RandomBot", 2);       // 2 easy opponents
 }
@@ -314,7 +314,7 @@ Add one line per bot. The second number is how many copies to add. Press **R** t
 
 ## What to Submit
 
-One `.pde` file named `LastnameFirstnameBot.pde` (e.g., `FreemanEricBot.pde`). The class name inside must match the file name exactly. Make sure it extends `Bot` and has the constructor that calls `super()`.
+One `.pde` file named `LastnameFirstnameBot.pde` (e.g., `SmithJaneBot.pde`). The class name inside must match the file name exactly. Make sure it extends `Bot` and has the constructor that calls `super()`.
 
 ## Deadline
 

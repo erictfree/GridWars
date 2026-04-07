@@ -35,7 +35,6 @@ Bot createStudentBot(String className, int x, int y, color c) {
     // ── Built-in bots ──────────────────────────────────────
     case "SmartBot":        return new SmartBot(x, y, c, className);
     case "RandomBot":       return new RandomBot(x, y, c, className);
-    case "FreemanEric":     return new FreemanEric(x, y, c, className);
     // ── Student bots (add before tournament) ────────────────
     default: return null;
   }

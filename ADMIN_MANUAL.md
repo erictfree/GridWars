@@ -6,7 +6,7 @@ How to set up and run the tournament and beast mode competitions.
 
 ## 1. Collecting Student Submissions
 
-Students submit one file each: `LastnameFirstnameBot.pde` (e.g., `FreemanEricBot.pde`). The class name inside must match the file name.
+Students submit one file each: `LastnameFirstnameBot.pde` (e.g., `SmithJaneBot.pde`). The class name inside must match the file name.
 
 Verify each submission:
 - File is named `LastnameFirstnameBot.pde`
@@ -29,7 +29,7 @@ Open `BotFactory.pde` and add a case for each student bot in the switch statemen
 
 ```java
 // ── Student bots (add before tournament) ────────────────
-case "FreemanEricBot":  return new FreemanEricBot(x, y, c, className);
+case "SmithJaneBot":  return new SmithJaneBot(x, y, c, className);
 case "SmithJaneBot":    return new SmithJaneBot(x, y, c, className);
 // ... one line per student
 ```
@@ -44,7 +44,7 @@ void registerTournamentBots() {
   
   // Use addTournamentBot(name) or build entries manually:
   String[] students = {
-    "FreemanEricBot", "SmithJaneBot", "DoeJohnBot"
+    "SmithJaneBot", "SmithJaneBot", "DoeJohnBot"
     // ... all student bot names
   };
   for (int i = 0; i < students.length; i++) {

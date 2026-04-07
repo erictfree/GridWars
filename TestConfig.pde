@@ -35,7 +35,7 @@
 //    "RandomBot"    — random walk (easy)
 //
 //  Your bot:
-//    Use your class name, e.g. "FreemanEricBot"
+//    Use your class name, e.g. "SmithJaneBot"
 //
 //  Example:
 //    addBot("LastnameFirstnameBot", 1);   // your bot

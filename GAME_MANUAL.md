@@ -34,7 +34,7 @@ Edit `TestConfig.pde` — this is the only file you need to change:
 
 ```java
 void configureSmartBots() {
-  addBot("FreemanEricBot", 1);   // your bot
+  addBot("SmithJaneBot", 1);   // your bot
   addBot("SmartBot", 3);          // 3 tough opponents
   addBot("RandomBot", 2);       // 2 easy opponents
 }
@@ -53,12 +53,12 @@ Each `addBot()` call adds bots to the match. The first argument is the bot class
 
 ## Writing Your Bot
 
-Your bot is a single `.pde` file named `LastnameFirstnameBot.pde` (e.g., `FreemanEricBot.pde`).
+Your bot is a single `.pde` file named `LastnameFirstnameBot.pde` (e.g., `SmithJaneBot.pde`).
 
 ```java
-class FreemanEricBot extends Bot {
+class SmithJaneBot extends Bot {
 
-  FreemanEricBot(int startX, int startY, color col, String name) {
+  SmithJaneBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
