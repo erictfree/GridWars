@@ -10,12 +10,12 @@ Each simulation step, every bot's `getNextMove()` is called. The bot returns a d
 
 ## Creating a Bot
 
-Create a `.pde` file named `LastnameFirstname.pde` with a class that extends `Bot`:
+Create a `.pde` file named `LastnameFirstnameBot.pde` with a class that extends `Bot`:
 
 ```java
-class LastnameFirstname extends Bot {
+class LastnameFirstnameBot extends Bot {
 
-  LastnameFirstname(int startX, int startY, color col, String name) {
+  LastnameFirstnameBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
@@ -26,7 +26,7 @@ class LastnameFirstname extends Bot {
 }
 ```
 
-Then add your bot to your test match in `TestConfig.pde`.
+Drop the file in the sketch folder and add your bot to `TestConfig.pde` — no other registration needed.
 
 ### GameInfo API
 
@@ -50,6 +50,7 @@ Query the game world inside `getNextMove()`:
 | Method | Description |
 |--------|-------------|
 | `canClaim(direction)` | Is the cell in that direction free? |
+| `isInBounds(direction)` | Is the cell in that direction on the grid? |
 | `peekCell(direction)` | Who owns the cell in that direction? |
 | `getFreeDirs()` | List of directions with free cells |
 
@@ -64,7 +65,7 @@ Edit `TestConfig.pde` to set up a test match:
 
 ```java
 void configureTestBots() {
-  addBot("LastnameFirstname", 1, true);  // your bot (with tracking halo)
+  addBot("LastnameFirstnameBot", 1, true);  // your bot (with tracking halo)
   addBot("SmartBot", 3);                 // 3 tough opponents
   addBot("RandomBot", 2);               // 2 easy opponents
 }

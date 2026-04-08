@@ -21,20 +21,9 @@ Verify each submission:
 
 ### Step 1: Copy bot files
 
-Place all student `.pde` files in the `GridBot/` sketch root folder (same level as `GridBot.pde`).
+Place all student `.pde` files in the `GridWars/` sketch root folder (same level as `GridWars.pde`). Bot classes are discovered automatically via reflection — no BotFactory registration needed.
 
-### Step 2: Register in BotFactory.pde
-
-Open `BotFactory.pde` and add a case for each student bot in the switch statement:
-
-```java
-// ── Student bots (add before tournament) ────────────────
-case "SmithJaneBot":  return new SmithJaneBot(x, y, c, className);
-case "SmithJaneBot":    return new SmithJaneBot(x, y, c, className);
-// ... one line per student
-```
-
-### Step 3: Register in BotRegistry.pde
+### Step 2: Register in BotRegistry.pde
 
 Open `BotRegistry.pde` and add students to `registerTournamentBots()`:
 
@@ -42,9 +31,8 @@ Open `BotRegistry.pde` and add students to `registerTournamentBots()`:
 void registerTournamentBots() {
   tournamentBotList = new ArrayList<BotEntry>();
   
-  // Use addTournamentBot(name) or build entries manually:
   String[] students = {
-    "SmithJaneBot", "SmithJaneBot", "DoeJohnBot"
+    "SmithJaneBot", "DoeJohnBot"
     // ... all student bot names
   };
   for (int i = 0; i < students.length; i++) {
@@ -53,9 +41,7 @@ void registerTournamentBots() {
 }
 ```
 
-The bot type `0` is a dummy — `createStudentBot()` resolves the name from BotFactory before falling back to type.
-
-### Step 4: Verify
+### Step 3: Verify
 
 Run the sketch, type `1983` to unlock admin, press **T** for tournament or **B** for beast mode. Confirm all student bots appear.
 
@@ -123,7 +109,7 @@ For the 3-round prize structure:
 
 Music fades between transitions. The mute button (lower-left) persists across all modes.
 
-To add more music: drop MP3s in `data/` and update the random range in `playTestMusic()`, `playRandomTheme()`, or `playPreMusic()` in `GridBot.pde`.
+To add more music: drop MP3s in `data/` and update the random range in `playTestMusic()`, `playRandomTheme()`, or `playPreMusic()` in `GridWars.pde`.
 
 ---
 
@@ -131,20 +117,21 @@ To add more music: drop MP3s in `data/` and update the random range in `playTest
 
 ### "Bot not found" / bot doesn't appear
 - Check that the `.pde` file is in the sketch root folder (not a subfolder)
-- Check that the class name in BotFactory.pde matches the file name exactly (case-sensitive)
+- Check that the class name matches the file name exactly (case-sensitive)
 - Check that the student's constructor calls `super(startX, startY, col, name)`
+- Check the Processing console for "Bot not found: ClassName" messages
 
 ### Sketch won't compile
 - A student bot has a syntax error. Check the Processing console for the error and the offending file name
-- Remove the problematic bot file and its BotFactory case temporarily
+- Remove the problematic bot file temporarily
 
 ### Game runs slowly with many bots
 - Tournament mode uses `TOURNEY_STEPS = 2` (double speed)
-- Reduce `TARGET_ROWS` in `GridBot.pde` for a smaller grid
+- Reduce `TARGET_ROWS` in `GridWars.pde` for a smaller grid
 - Set `HIGH_RES = false` for a smaller window
 
 ### Screen too large
-- Set `HIGH_RES = false` in `GridBot.pde` for 1200×750
+- Set `HIGH_RES = false` in `GridWars.pde` for 1200×750
 
 ---
 
@@ -180,4 +167,4 @@ Each round's winner: **+5 points**
 | Toggle magnifier | Z |
 | Toggle dim mode | D |
 | Mute/unmute | Click speaker icon (lower-left) |
-| Save screenshots | Set `SAVE_SCREENSHOTS = true` in GridBot.pde |
+| Save screenshots | Set `SAVE_SCREENSHOTS = true` in GridWars.pde |

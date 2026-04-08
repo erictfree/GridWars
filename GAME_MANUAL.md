@@ -8,7 +8,7 @@ Grid Wars is a bot-vs-bot territory game. Bots move around a grid claiming cells
 
 ## Quick Start
 
-1. Open `GridBot.pde` in Processing
+1. Open `GridWars.pde` in Processing
 2. Click the Run button (or press Cmd+R / Ctrl+R)
 3. The splash screen shows scrolling credits — press **Spacebar** to see the contenders
 4. Press **Spacebar** again (or wait 3 seconds) to start the game
@@ -76,7 +76,7 @@ Override `getNextMove()` to return `UP`, `DOWN`, `LEFT`, or `RIGHT` each step. S
 
 ## Display Settings
 
-If the game window is too large for your screen, open `GridBot.pde` and change:
+If the game window is too large for your screen, open `GridWars.pde` and change:
 
 ```java
 boolean HIGH_RES = false;  // smaller 1200×750 window
