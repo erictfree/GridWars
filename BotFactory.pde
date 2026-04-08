@@ -33,12 +33,12 @@ Bot createStudentBot(String className, int x, int y, color c) {
   try {
     // Processing inner classes are named SketchName$ClassName
     Class<?> cls = Class.forName("GridWars$" + className);
-    java.lang.reflect.Constructor<?> ctor = cls.getConstructor(
+    java.lang.reflect.Constructor<?> ctor = cls.getDeclaredConstructor(
       this.getClass(), int.class, int.class, int.class, String.class
     );
     return (Bot) ctor.newInstance(this, x, y, c, className);
   } catch (Exception e) {
-    println("Bot not found: " + className);
+    println("Bot not found: " + className + " — " + e);
     return null;
   }
 }
