@@ -73,6 +73,30 @@ String[] creditsStudents = {
   "Emily Yao", "Hengyu Zhou"
 };
 
+// ── Side tips for credits scroll ───────────────────────────────
+String[] sideTips = {
+  "> GAME TOO LARGE?\n  OPEN GridWars.pde\n  AND SET HIGH_RES\n  = false FOR A\n  SMALLER WINDOW",
+  "> SAVE THE PODIUM!\n  SET THE FLAG\n  SAVE_SCREENSHOTS\n  = true IN\n  GridWars.pde TO\n  CAPTURE ENDINGS",
+  "> PRESS [R]\n  RESTART YOUR\n  TEST MATCH AND\n  GO BACK TO THE\n  SPLASH SCREEN",
+  "> PRESS [Z]\n  TOGGLE MAGNIFIER\n  ZOOMS IN ON THE\n  LEADING BOT SO\n  YOU CAN WATCH\n  THE ACTION CLOSE",
+  "> PRESS [L]\n  TOGGLE THE LIVE\n  LEADERBOARD ON\n  THE RIGHT SIDE\n  DURING GAMEPLAY",
+  "> PRESS [D]\n  DIM MODE FADES\n  NON-HALO BOTS\n  SO YOU CAN TRACK\n  YOUR BOT EASILY",
+  "> getFreeDirs()\n  RETURNS A LIST OF\n  ALL DIRECTIONS\n  WHERE ADJACENT\n  CELLS ARE FREE",
+  "> canClaim(dir)\n  RETURNS TRUE IF\n  THE CELL IN THAT\n  DIRECTION IS\n  UNCLAIMED",
+  "> getProgress()\n  FLOAT FROM 0.0\n  AT THE START TO\n  1.0 AT THE END\n  OF THE MATCH",
+  "> getNearestBot()\n  FIND THE CLOSEST\n  OPPONENT BOT BY\n  MANHATTAN DIST\n  AVOID OR CHASE!",
+  "> GRID[ROW][COL]\n  SAME AS [Y][X]\n  ROW FIRST ALWAYS\n  YOUR CELL IS AT\n  grid[this.y]\n       [this.x]",
+  "> INSTANCE VARS\n  ADD FIELDS TO\n  YOUR BOT CLASS\n  THEY PERSIST\n  BETWEEN MOVES",
+  "> peekCell(dir)\n  CHECK WHO OWNS\n  THE CELL NEXT\n  TO YOU: -1 FREE\n  -2 OUT OF BOUNDS",
+  "> TestConfig.pde\n  SET 3RD ARG TRUE\n  IN addBot() FOR\n  A TRACKING HALO\n  AROUND YOUR BOT",
+  "> BOT POSITION\n  this.x = COLUMN\n  this.y = ROW\n  this.score = YOUR\n  CLAIMED CELLS",
+  "> NO ELIMINATION\n  ALL BOTS PLAY\n  THE FULL GAME\n  HIGHEST SCORE\n  AT THE END WINS",
+  "> getNextMove()\n  OVERRIDE THIS ONE\n  METHOD TO PLAY\n  RETURN UP DOWN\n  LEFT OR RIGHT",
+  "> randomDir()\n  RETURNS A RANDOM\n  DIRECTION: GREAT\n  AS A FALLBACK\n  WHEN NO FREE CELLS",
+  "> countUnclaimed()\n  TOTAL FREE CELLS\n  LEFT ON THE GRID\n  PLAN YOUR MOVES\n  ACCORDINGLY",
+  "> game.bots\n  FULL LIST OF ALL\n  BOTS IN THE MATCH\n  READ THEIR SCORE\n  POSITION + COLOR"
+};
+
 void drawBeastSplash() {
   float cx = width / 2.0;
   float fastPulse = 0.5 + 0.5 * sin(stateTimer * 0.2);
@@ -193,6 +217,9 @@ void drawCreditsScroll(float cx, float fastPulse, float clipTop) {
   // Remove clip before drawing fixed UI
   noClip();
 
+  // ── Side tips (retro terminal style) ──
+  drawSideTips(clipTop, clipBot);
+
   // ── "PRESS SPACEBAR" fixed at bottom ──
   if ((frameCount % 50) < 35) {
     textAlign(PConstants.CENTER, PConstants.CENTER);
@@ -209,38 +236,21 @@ void drawContenderReveal(float cx, float fastPulse) {
   float pulse = 0.7 + 0.3 * sin(contenderRevealTimer * 0.08);
   int n = testBotList.size();
 
-  // ── Subtle dark overlay for readability ──
-  noStroke();
-  fill(0, 100);
-  rect(0, height * 0.34, width, height * 0.62);
-
-  // ── "CONTENDERS" — below the header ──
-  textAlign(PConstants.CENTER, PConstants.CENTER);
-  float titleY = height * 0.40;
-  textSize(24);
-  fill(255, 0, 128, 40);
-  text("C O N T E N D E R S", cx + 1, titleY + 1);
-  text("C O N T E N D E R S", cx - 1, titleY - 1);
-  fill(255, 0, 128, 200 + 55 * fastPulse);
-  text("C O N T E N D E R S", cx, titleY);
-
-  // ── Dividers — cyan/magenta ──
-  float divY = titleY + 22;
-  stroke(0, 255, 255, 70 * pulse);
-  strokeWeight(1);
-  line(cx - 300, divY, cx + 300, divY);
-  stroke(255, 0, 255, 35 * pulse);
-  line(cx - 300, divY + 3, cx + 300, divY + 3);
-  noStroke();
-
-  // ── Bot roster — centered, spacious ──
+  // ── Bot roster — top-aligned below header ──
   int rosterCols = (n > 14) ? 3 : (n > 7) ? 2 : 1;
   float colW = (n > 14) ? 340 : 400;
   int perCol = (int) ceil((float) n / rosterCols);
   float rosterX = cx - (rosterCols * colW) / 2;
-  float startY = divY + 30;
-  float availH = height * 0.80 - startY;
-  float rowH = min(52, availH / max(1, perCol));
+  float startY = height * 0.38;
+  float botY = height * 0.80;
+  float availH = botY - startY;
+
+  // Scale up for small groups
+  float maxRowH = n <= 4 ? 70 : 52;
+  float rowH = min(maxRowH, availH / max(1, perCol));
+  float nameSize = n <= 6 ? 24 : 20;
+  float swatchBase = n <= 6 ? 28 : 22;
+  float rankSize = n <= 6 ? 15 : 13;
 
   int botsToShow = min(n, (int)(contenderRevealTimer * n / 40.0) + 1);
 
@@ -264,19 +274,19 @@ void drawContenderReveal(float cx, float fastPulse) {
     // Rank number
     textAlign(PConstants.RIGHT, PConstants.CENTER);
     fill(0, 200, 255, 80);
-    textSize(13);
+    textSize(rankSize);
     text(nf(i + 1, 2) + ".", bx - 6, by + rowH / 2);
 
     // Color swatch
-    float swatchSz = min(22, rowH - 14);
+    float swatchSz = min(swatchBase, rowH - 14);
     fill(red(entry.col), green(entry.col), blue(entry.col), 35);
     noStroke();
     rect(bx, by + (rowH - swatchSz) / 2 - 1, swatchSz + 4, swatchSz + 4, 3);
     fill(entry.col);
     rect(bx + 2, by + (rowH - swatchSz) / 2 + 1, swatchSz, swatchSz);
 
-    // Name — large
-    textSize(20);
+    // Name
+    textSize(nameSize);
     textAlign(PConstants.LEFT, PConstants.CENTER);
     fill(0, 140);
     text(displayName(entry.name), bx + swatchSz + 14, by + rowH / 2 + 1);
@@ -400,4 +410,92 @@ void drawCountdown() {
   float ringSize = 200 * scale;
   ellipse(cx, cy, ringSize, ringSize);
   noStroke();
+}
+
+// ── Retro terminal tips in credit scroll margins ───────────────
+void drawSideTips(float clipTop, float clipBot) {
+  int tipFrames = 300;   // 5 sec per tip at 60fps
+  int typeRate = 2;      // frames per character
+  int fadeFrames = 30;   // fade in/out duration
+
+  // Left and right cycle independently — offset by half a cycle
+  int leftCycle   = stateTimer / tipFrames;
+  int leftElapsed = stateTimer % tipFrames;
+  int rightShift  = tipFrames / 2;
+  int rightCycle   = (stateTimer + rightShift) / tipFrames;
+  int rightElapsed = (stateTimer + rightShift) % tipFrames;
+
+  // Pick tips — multiplier 7 scatters the order
+  int leftIdx  = (leftCycle * 7) % sideTips.length;
+  int rightIdx = (rightCycle * 7 + sideTips.length / 2) % sideTips.length;
+  if (rightIdx == leftIdx) rightIdx = (rightIdx + 1) % sideTips.length;
+
+  // Pseudo-random y positions per tip (deterministic from index)
+  float yPad = 140;  // room for tip height + margin
+  float yMin = clipTop + 20;
+  float yMax = clipBot - yPad;
+  float leftYt  = abs(sin(leftIdx * 2.39 + 0.7));
+  float rightYt = abs(sin(rightIdx * 3.17 + 1.3));
+  float leftY  = lerp(yMin, yMax, leftYt);
+  float rightY = lerp(yMin, yMax, rightYt);
+
+  // Left tip — fade & type
+  float leftAlpha = 1.0;
+  if (leftElapsed < fadeFrames) leftAlpha = (float) leftElapsed / fadeFrames;
+  else if (leftElapsed > tipFrames - fadeFrames) leftAlpha = (float)(tipFrames - leftElapsed) / fadeFrames;
+  int leftChars = leftElapsed / typeRate;
+  drawTypedTip(sideTips[leftIdx], 25, leftY, leftChars, leftAlpha);
+
+  // Right tip — fade & type
+  float rightAlpha = 1.0;
+  if (rightElapsed < fadeFrames) rightAlpha = (float) rightElapsed / fadeFrames;
+  else if (rightElapsed > tipFrames - fadeFrames) rightAlpha = (float)(tipFrames - rightElapsed) / fadeFrames;
+  int rightChars = rightElapsed / typeRate;
+  drawTypedTip(sideTips[rightIdx], width - 330, rightY, rightChars, rightAlpha);
+}
+
+void drawTypedTip(String tip, float x, float y, int maxChars, float alpha) {
+  String[] lines = split(tip, '\n');
+  textSize(12);
+  textAlign(PConstants.LEFT, PConstants.TOP);
+
+  float lineH = 22;
+  int charsSoFar = 0;
+
+  // Green phosphor terminal color
+  int ga = (int)(alpha * 150);
+  int gg = (int)(alpha * 35);
+
+  for (int i = 0; i < lines.length; i++) {
+    String line = lines[i];
+    float ly = y + i * lineH;
+
+    if (charsSoFar >= maxChars) break;
+
+    String visible;
+    boolean showCursor = false;
+    if (charsSoFar + line.length() <= maxChars) {
+      visible = line;
+      charsSoFar += line.length();
+    } else {
+      int partial = maxChars - charsSoFar;
+      visible = line.substring(0, partial);
+      charsSoFar = maxChars;
+      showCursor = true;
+    }
+
+    // Glow
+    fill(0, 255, 70, gg);
+    text(visible, x + 1, ly + 1);
+    // Main text
+    fill(0, 255, 70, ga);
+    text(visible, x, ly);
+
+    // Blinking cursor
+    if (showCursor && (frameCount / 12) % 2 == 0) {
+      float cursorX = x + textWidth(visible);
+      fill(0, 255, 70, ga);
+      text("_", cursorX, ly);
+    }
+  }
 }
