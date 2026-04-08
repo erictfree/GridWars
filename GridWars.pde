@@ -82,6 +82,7 @@ Direction[] DIRS;
 // ── Mode ────────────────────────────────────────────────────
 // false = TEST mode, true = TOURNAMENT mode
 boolean tournamentMode = false;
+boolean dimMode = false;  // D key: dim non-halo bots
 
 // ── Game state ──────────────────────────────────────────────
 int[][] grid;
@@ -245,6 +246,10 @@ void initGame() {
     java.util.Arrays.fill(grid[r], -1);
   }
 
+  // Fresh palette each run, then register bots with those colors
+  randomizePalette();
+  registerTestBots();
+
   bots = new ArrayList<Bot>();
 
   // Use test bot registry
@@ -279,10 +284,6 @@ void initGame() {
   gameStartMillis = 0;
   testIntroPhase = 0;
   contenderRevealTimer = 0;
-
-  // Fresh palette each run
-  randomizePalette();
-  registerTestBots();  // re-register with new colors
 
   // Init score history
   scoreHistory = new int[bots.size()][HIST_LEN];
@@ -674,35 +675,39 @@ void drawGrid() {
         fill(g, g, g + 5);
         rect(cx, cy, cs, cs);
       } else {
-        color base = bots.get(owner).col;
+        Bot ownerBot = bots.get(owner);
+        color base = ownerBot.col;
+        boolean dim = dimMode && !ownerBot.halo;
+        float dimAlpha = dim ? 0.3 : 1.0;
 
         // Main cell fill
-        fill(red(base), green(base), blue(base), 235);
+        fill(red(base) * dimAlpha, green(base) * dimAlpha, blue(base) * dimAlpha, dim ? 140 : 235);
         rect(cx, cy, cs, cs);
 
-        // Inner highlight — lighter top half for depth
-        fill(255, 35);
-        rect(cx, cy, cs, cs / 2);
+        if (!dim) {
+          // Inner highlight — lighter top half for depth
+          fill(255, 35);
+          rect(cx, cy, cs, cs / 2);
 
-        // Territory shimmer
-        if ((r + c) % 2 == 0) {
-          float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
-          if (wave > 0.5) {
-            Bot ownerBot = bots.get(owner);
-            float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
-            float intensity = (wave - 0.5) * 2.0;
-            fill(255, intensity * (20 + 50 * scorePct));
-            rect(cx, cy, cs, cs);
+          // Territory shimmer
+          if ((r + c) % 2 == 0) {
+            float wave = sin((r + c) * 0.4 + frameCount * 0.12 + owner * 2.0);
+            if (wave > 0.5) {
+              float scorePct = constrain((float) ownerBot.score / (COLS * ROWS * 0.1), 0, 1);
+              float intensity = (wave - 0.5) * 2.0;
+              fill(255, intensity * (20 + 50 * scorePct));
+              rect(cx, cy, cs, cs);
+            }
           }
-        }
 
-        // Claim flash
-        if (claimFrame[r][c] > 0) {
-          int age = frameCount - claimFrame[r][c];
-          if (age < FLASH_FRAMES) {
-            float t = 1.0 - (float) age / FLASH_FRAMES;
-            fill(255, t * 80);
-            rect(cx, cy, cs, cs);
+          // Claim flash
+          if (claimFrame[r][c] > 0) {
+            int age = frameCount - claimFrame[r][c];
+            if (age < FLASH_FRAMES) {
+              float t = 1.0 - (float) age / FLASH_FRAMES;
+              fill(255, t * 80);
+              rect(cx, cy, cs, cs);
+            }
           }
         }
       }
@@ -842,6 +847,11 @@ void keyPressed() {
   // Z = toggle magnifier on lead player
   if (key == 'z' || key == 'Z') {
     showMagnifier = !showMagnifier;
+  }
+
+  // D = toggle dim mode (dim non-halo bots)
+  if (key == 'd' || key == 'D') {
+    dimMode = !dimMode;
   }
 
   // Admin code: type 1983 to unlock T and B

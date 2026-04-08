@@ -178,5 +178,6 @@ Each round's winner: **+5 points**
 | Restart to splash | R |
 | Toggle leaderboard | L |
 | Toggle magnifier | Z |
+| Toggle dim mode | D |
 | Mute/unmute | Click speaker icon (lower-left) |
 | Save screenshots | Set `SAVE_SCREENSHOTS = true` in GridBot.pde |

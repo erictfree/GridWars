@@ -45,10 +45,14 @@ void registerTestBots() {
 }
 
 void addBot(String name, int count) {
+  addBot(name, count, false);
+}
+
+void addBot(String name, int count, boolean halo) {
   for (int i = 0; i < count; i++) {
     color c = PALETTE[addBotColorIdx % PALETTE.length];
     addBotColorIdx++;
-    testBotList.add(new BotEntry(name, c, 0));
+    testBotList.add(new BotEntry(name, c, 0, halo));
   }
 }
 

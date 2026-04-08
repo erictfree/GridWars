@@ -25,36 +25,66 @@
  * SOFTWARE.
  */
 
-// ── Retro color palettes — one is randomly chosen each game ─
+// ── Retro color palettes — pooled from all themes, deduplicated by hue ─
 
 void randomizePalette() {
-  // TEMPORARY: jewel-tone palette for screenshots
-  paletteJewel();
-  /*
-  int pick = (int) random(6);
-  switch (pick) {
-    case 0:  paletteSynthwave(); break;
-    case 1:  palettePacMan(); break;
-    case 2:  paletteNES(); break;
-    case 3:  paletteCGA(); break;
-    case 4:  paletteGameBoyColor(); break;
-    default: paletteSega(); break;
+  // Pool every color from all palettes
+  color[][] allPalettes = {
+    paletteSynthwave(), palettePacMan(), paletteNES(),
+    paletteCGA(), paletteGameBoyColor(), paletteSega(), paletteJewel()
+  };
+
+  // Collect all colors into one flat list
+  ArrayList<Integer> pool = new ArrayList<Integer>();
+  for (color[] pal : allPalettes) {
+    for (color c : pal) {
+      pool.add(c);
+    }
   }
-  */
+
   // Max out saturation and brightness — bold, vivid colors
   pushStyle();
   colorMode(HSB, 360, 100, 100);
-  for (int i = 0; i < PALETTE.length; i++) {
-    float h = hue(PALETTE[i]);
-    float s = saturation(PALETTE[i]);
-    float b = brightness(PALETTE[i]);
-    // Force full saturation and full brightness
-    s = 100;
-    b = 100;
-    PALETTE[i] = color(h, s, b);
+  for (int i = 0; i < pool.size(); i++) {
+    float h = hue(pool.get(i));
+    pool.set(i, color(h, 100, 100));
+  }
+
+  // Deduplicate: keep only colors whose hue is at least MIN_HUE_GAP
+  // degrees away from every already-selected color
+  float MIN_HUE_GAP = 8;
+  ArrayList<Integer> distinct = new ArrayList<Integer>();
+  ArrayList<Float> distinctHues = new ArrayList<Float>();
+
+  // Shuffle pool first so we don't always favor the same palette order
+  for (int i = pool.size() - 1; i > 0; i--) {
+    int j = (int) random(i + 1);
+    int tmp = pool.get(i);
+    pool.set(i, pool.get(j));
+    pool.set(j, tmp);
+  }
+
+  for (int i = 0; i < pool.size(); i++) {
+    float h = hue(pool.get(i));
+    boolean tooClose = false;
+    for (int k = 0; k < distinctHues.size(); k++) {
+      float diff = abs(h - distinctHues.get(k));
+      if (diff > 180) diff = 360 - diff;  // wrap around hue wheel
+      if (diff < MIN_HUE_GAP) { tooClose = true; break; }
+    }
+    if (!tooClose) {
+      distinct.add(pool.get(i));
+      distinctHues.add(h);
+    }
   }
   colorMode(RGB, 255);
   popStyle();
+
+  // Build final PALETTE from distinct colors
+  PALETTE = new color[distinct.size()];
+  for (int i = 0; i < distinct.size(); i++) {
+    PALETTE[i] = distinct.get(i);
+  }
 
   // Shuffle so bots get different colors each run
   for (int i = PALETTE.length - 1; i > 0; i--) {
@@ -66,8 +96,8 @@ void randomizePalette() {
 }
 
 // Neon synthwave (cyan/magenta/purple)
-void paletteSynthwave() {
-  PALETTE = new color[] {
+color[] paletteSynthwave() {
+  return new color[] {
     color(  0, 255, 255), color(255,   0, 128), color(255, 255,   0),
     color(128,   0, 255), color(  0, 255, 128), color(255, 100,   0),
     color(100, 140, 255), color(255,   0, 255), color(  0, 200, 100),
@@ -82,8 +112,8 @@ void paletteSynthwave() {
 }
 
 // Pac-Man / Namco arcade
-void palettePacMan() {
-  PALETTE = new color[] {
+color[] palettePacMan() {
+  return new color[] {
     color(255, 255,   0), color(255,   0,   0), color(255, 184, 255),
     color(  0, 255, 255), color(255, 184,  82), color( 33, 33,  255),
     color( 33, 255,  33), color(255, 184, 174), color(255, 206,   0),
@@ -98,8 +128,8 @@ void palettePacMan() {
 }
 
 // NES / Famicom palette
-void paletteNES() {
-  PALETTE = new color[] {
+color[] paletteNES() {
+  return new color[] {
     color(252,  56,   0), color(  0, 168, 252), color(  0, 168,   0),
     color(252, 252,   0), color(168,   0, 252), color(252, 160,  68),
     color(248, 120,  88), color(104, 136, 252), color( 56, 216, 120),
@@ -114,8 +144,8 @@ void paletteNES() {
 }
 
 // CGA-inspired (high contrast, limited palette stretched)
-void paletteCGA() {
-  PALETTE = new color[] {
+color[] paletteCGA() {
+  return new color[] {
     color(255, 255,  85), color( 85, 255, 255), color(255,  85, 255),
     color(255,  85,  85), color( 85, 255,  85), color( 85,  85, 255),
     color(255, 255, 255), color(255, 170,   0), color(  0, 170, 255),
@@ -130,8 +160,8 @@ void paletteCGA() {
 }
 
 // Game Boy Color era
-void paletteGameBoyColor() {
-  PALETTE = new color[] {
+color[] paletteGameBoyColor() {
+  return new color[] {
     color( 56, 184, 120), color(232,  80,  48), color( 40, 120, 200),
     color(248, 200,  48), color(200,  56, 160), color( 80, 200,  80),
     color(248, 144,  32), color( 48, 168, 232), color(184, 232,  56),
@@ -146,8 +176,8 @@ void paletteGameBoyColor() {
 }
 
 // Sega Genesis / Mega Drive
-void paletteSega() {
-  PALETTE = new color[] {
+color[] paletteSega() {
+  return new color[] {
     color(  0,   0, 238), color(238,   0,   0), color(  0, 238,   0),
     color(238, 238,   0), color(238,   0, 238), color(  0, 238, 238),
     color(238, 170,   0), color(170,   0, 238), color(  0, 238, 170),
@@ -161,9 +191,9 @@ void paletteSega() {
   };
 }
 
-// TEMPORARY — deep jewel tones for screenshots
-void paletteJewel() {
-  PALETTE = new color[] {
+// Deep jewel tones
+color[] paletteJewel() {
+  return new color[] {
     color(180,  20, 120), color(  0, 180, 160), color( 30, 110, 200),
     color(200, 160,  20), color(  0, 200, 180), color(160,  20, 160),
     color( 20, 140, 180), color(200, 100,  20), color(100,  20, 180),

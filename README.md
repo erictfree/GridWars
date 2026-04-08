@@ -64,9 +64,9 @@ Edit `TestConfig.pde` to set up a test match:
 
 ```java
 void configureTestBots() {
-  addBot("LastnameFirstname", 1);  // your bot
-  addBot("SmartBot", 3);           // 3 tough opponents
-  addBot("RandomBot", 2);          // 2 easy opponents
+  addBot("LastnameFirstname", 1, true);  // your bot (with tracking halo)
+  addBot("SmartBot", 3);                 // 3 tough opponents
+  addBot("RandomBot", 2);               // 2 easy opponents
 }
 ```
 
@@ -87,6 +87,7 @@ Press **R** to restart a test match.
 | **R** | Restart test match |
 | **Z** | Toggle magnifier (follows the leader) |
 | **L** | Toggle live leaderboard |
+| **D** | Toggle dim mode (focus on halo bots) |
 | **M** | Mute/unmute music |
 
 ## Requirements

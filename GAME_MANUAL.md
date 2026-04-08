@@ -24,6 +24,7 @@ Grid Wars is a bot-vs-bot territory game. Bots move around a grid claiming cells
 | **R** | Restart (back to splash screen) |
 | **L** | Toggle leaderboard sidebar on/off |
 | **Z** | Toggle magnifier on the leading bot |
+| **D** | Toggle dim mode (fades non-halo bots to focus on yours) |
 | **Click mute icon** | Mute/unmute music (lower-left corner) |
 
 ---
@@ -33,14 +34,14 @@ Grid Wars is a bot-vs-bot territory game. Bots move around a grid claiming cells
 Edit `TestConfig.pde` — this is the only file you need to change:
 
 ```java
-void configureSmartBots() {
-  addBot("SmithJaneBot", 1);   // your bot
-  addBot("SmartBot", 3);          // 3 tough opponents
-  addBot("RandomBot", 2);       // 2 easy opponents
+void configureTestBots() {
+  addBot("SmithJaneBot", 1, true);  // your bot (with tracking halo)
+  addBot("SmartBot", 3);            // 3 tough opponents
+  addBot("RandomBot", 2);          // 2 easy opponents
 }
 ```
 
-Each `addBot()` call adds bots to the match. The first argument is the bot class name, the second is how many.
+Each `addBot()` call adds bots to the match. The first argument is the bot class name, the second is how many. The optional third argument `true` adds a **tracking halo** — a pulsing ring around your bot so you can spot it easily. Press **D** during a game to toggle **dim mode**, which fades out non-halo bots so you can focus on yours.
 
 ### Available Opponent Bots
 

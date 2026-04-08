@@ -29,6 +29,7 @@ class Bot {
   int x, y, id, score;
   color col;
   String name;
+  boolean halo = false;
 
   float glowSize   = 1.0;
   String label     = "";
@@ -172,6 +173,15 @@ class Bot {
     float gs = glowSize;
     float cx = x * CELL + CELL / 2.0;
     float cy = y * CELL + CELL / 2.0;
+    boolean dim = dimMode && !halo;
+
+    if (dim) {
+      // Dimmed bot — small muted dot, no trail/name/halo
+      float dimSize = CELL * 1.0;
+      fill(red(col) * 0.3, green(col) * 0.3, blue(col) * 0.3, 160);
+      rect(cx - dimSize / 2, cy - dimSize / 2, dimSize, dimSize);
+      return;
+    }
 
     // Trail — subtle fading dots
     if (trailLength > 0) {
@@ -185,6 +195,22 @@ class Bot {
         rect(trailX[idx] * CELL + (CELL - sz) / 2,
              trailY[idx] * CELL + (CELL - sz) / 2, sz, sz);
       }
+    }
+
+    // Halo — large pulsing ring to help track your bot
+    if (halo) {
+      float haloPulse = 0.5 + 0.5 * sin(frameCount * 0.08);
+      float haloSize = CELL * (6 + 2 * haloPulse) * gs;
+      noFill();
+      // Outer glow
+      stroke(red(col), green(col), blue(col), 60 * haloPulse);
+      strokeWeight(6);
+      ellipse(cx, cy, haloSize, haloSize);
+      // Inner ring
+      stroke(red(col), green(col), blue(col), 200 * (0.5 + 0.5 * haloPulse));
+      strokeWeight(3);
+      ellipse(cx, cy, haloSize * 0.85, haloSize * 0.85);
+      noStroke();
     }
 
     // Bot indicator — pixel-art style

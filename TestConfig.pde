@@ -29,6 +29,7 @@
 //  TEST CONFIG — Set up your test match here!
 //
 //  Use addBot("BotName", count) to add bots to the test.
+//  Use addBot("BotName", count, true) to show a tracking halo.
 //
 //  Available bots:
 //    "SmartBot"     — strong all-around opponent
@@ -38,12 +39,12 @@
 //    Use your class name, e.g. "SmithJaneBot"
 //
 //  Example:
-//    addBot("LastnameFirstnameBot", 1);   // your bot
+//    addBot("LastnameFirstnameBot", 1, true);  // your bot (with halo)
 //    addBot("SmartBot", 3);          // 3 tough opponents
 //    addBot("RandomBot", 2);         // 2 easy opponents
 // ─────────────────────────────────────────────────────────────
 
 void configureTestBots() {
-  addBot("RandomBot", 2);
-  addBot("SmartBot", 2);
+  addBot("RandomBot", 1);
+  addBot("SmartBot", 1);
 }

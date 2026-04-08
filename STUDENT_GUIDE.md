@@ -270,29 +270,21 @@ Your constructor calls `super(startX, startY, col, name)` to initialize the base
 
 Adding fields to your class lets your bot remember things between steps. This is object state — each bot instance has its own memory, independent of every other bot on the grid.
 
-## Customize Your Bot's Look
-
-Set these in your constructor:
-
-```java
-this.label       = "Z";    // character drawn on your bot
-this.glowSize    = 1.5;    // glow size multiplier (0.5 – 2.0)
-this.trailLength = 25;     // trail length (0 = off, max 40)
-```
-
 ## Testing Your Bot
 
 Edit `TestConfig.pde` to set up your test match. This is the only file you need to change:
 
 ```java
-void configureSmartBots() {
-  addBot("SmithJaneBot", 1);   // your bot
-  addBot("SmartBot", 3);          // 3 tough opponents
-  addBot("RandomBot", 2);       // 2 easy opponents
+void configureTestBots() {
+  addBot("SmithJaneBot", 1, true);  // your bot (with tracking halo)
+  addBot("SmartBot", 3);            // 3 tough opponents
+  addBot("RandomBot", 2);           // 2 easy opponents
 }
 ```
 
-Add one line per bot. The second number is how many copies to add. Press **R** to restart, **Space** to start.
+Add one line per bot. The second number is how many copies to add. The optional third parameter `true` adds a **tracking halo** — a pulsing ring around your bot so you can follow it during the game. Press **R** to restart, **Space** to start.
+
+**Tip:** Press **D** during a game to toggle **dim mode** — non-halo bots fade out so you can focus on your bot's movement and territory.
 
 **Available opponent bots:**
 

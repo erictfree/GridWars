@@ -33,26 +33,35 @@ class BotEntry {
   int botType;     // 0=Random,1=Greedy,2=Spiral,3=Frontier,4=Hunter
   boolean alive;   // still in tournament?
   int totalScore;  // accumulated across all heats
+  boolean halo;    // show tracking halo around this bot
 
   BotEntry(String name, color col, int botType) {
+    this(name, col, botType, false);
+  }
+
+  BotEntry(String name, color col, int botType, boolean halo) {
     this.name = name;
     this.col = col;
     this.botType = botType;
     this.alive = true;
     this.totalScore = 0;
+    this.halo = halo;
   }
 
   // Creates a bot instance — tries student class by name, falls back to type
   Bot createInstance(int x, int y) {
     // Try student bot class by name
     Bot b = createStudentBot(name, x, y, col);
-    if (b != null) return b;
-    // Fall back to reference bot type
-    switch (botType) {
-      case 0:  return new RandomBot(x, y, col, name);
-      case 1:  return new SmartBot(x, y, col, name);
-      default: return new RandomBot(x, y, col, name);
+    if (b == null) {
+      // Fall back to reference bot type
+      switch (botType) {
+        case 0:  b = new RandomBot(x, y, col, name); break;
+        case 1:  b = new SmartBot(x, y, col, name); break;
+        default: b = new RandomBot(x, y, col, name); break;
+      }
     }
+    b.halo = this.halo;
+    return b;
   }
 }
 
