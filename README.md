@@ -89,7 +89,7 @@ Press **R** to restart a test match.
 | **Z** | Toggle magnifier (follows the leader) |
 | **L** | Toggle live leaderboard |
 | **D** | Toggle dim mode (focus on halo bots) |
-| **Click speaker icon** | Mute/unmute music (lower-left corner) |
+| **M** | Mute/unmute music |
 
 ## Requirements
 

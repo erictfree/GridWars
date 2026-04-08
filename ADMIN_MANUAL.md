@@ -107,7 +107,7 @@ For the 3-round prize structure:
 | Tournament heats | `theme1.mp3`, `theme2.mp3` (random per heat) |
 | Beast mode gameplay | `beast.mp3` |
 
-Music fades between transitions. The mute button (lower-left) persists across all modes.
+Music fades between transitions. Press **M** to mute/unmute (persists across all modes).
 
 To add more music: drop MP3s in `data/` and update the random range in `playTestMusic()`, `playRandomTheme()`, or `playPreMusic()` in `GridWars.pde`.
 
@@ -166,5 +166,5 @@ Each round's winner: **+5 points**
 | Toggle leaderboard | L |
 | Toggle magnifier | Z |
 | Toggle dim mode | D |
-| Mute/unmute | Click speaker icon (lower-left) |
+| Mute/unmute | M |
 | Save screenshots | Set `SAVE_SCREENSHOTS = true` in GridWars.pde |

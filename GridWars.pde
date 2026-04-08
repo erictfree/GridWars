@@ -55,6 +55,8 @@ int gameStartMillis;
 PImage bgImg;
 PImage beastBgImg;
 PImage tourneyBgImg;
+PImage gameBgImg;
+PImage mascotImg;
 boolean beastMode = false;
 boolean beastSplash = false;
 boolean showLeaderboard = true;
@@ -125,6 +127,17 @@ int lastPreTrack = 0;
 // ── UI colors (retro arcade) ────────────────────────────────
 color unclaimedColor, sidebarBg, hudBg, arcadeBlue;
 
+// ── Terrain palettes (cycle with T) ────────────────────────
+int terrainPalette = 0;
+final int TERRAIN_COUNT = 7;
+// 0 = Dark Grey (default)
+// 1 = Dig Dug (warm earth/dirt)
+// 2 = Tron (neon blue grid)
+// 3 = Frogger (swamp green)
+// 4 = Pac-Man (deep indigo)
+// 5 = Galaga (starfield purple)
+// 6 = Sky (bright blue with clouds)
+
 // ── Arcade font ─────────────────────────────────────────────
 PFont arcadeFont;
 
@@ -161,6 +174,11 @@ void setup() {
   if (tourneyBgImg != null) {
     tourneyBgImg.resize(winW, winH);
   }
+  gameBgImg = loadImage("gamebackground2.png");
+  if (gameBgImg != null) {
+    gameBgImg.resize(winW, winH);
+  }
+  mascotImg = loadImage("mascott.png");
 
   // Init directions
   UP    = new Direction( 0, -1);
@@ -225,7 +243,7 @@ void playTestMusic() {
   }
   int pick;
   do {
-    pick = (int) random(1, 8);  // 1–7
+    pick = (int) random(1, 10);  // 1–9
   } while (pick == lastTestTrack);
   lastTestTrack = pick;
   music = new SoundFile(this, "test" + pick + ".mp3");
@@ -408,6 +426,8 @@ void draw() {
     image(tourneyBgImg, 0, 0);
   } else if (showBg && bgImg != null) {
     image(bgImg, 0, 0);
+  } else if (gameBgImg != null) {
+    image(gameBgImg, 0, 0);
   } else {
     background(0);
   }
@@ -538,16 +558,8 @@ void drawPlayArea() {
   int gridW = COLS * CELL + INSET * 2;
   int gridH = ROWS * CELL + INSET * 2;
 
-  // Outer glow
-  noStroke();
-  fill(0, 180, 220, 18);
-  rect(MARGIN - 3, TOP_MARGIN + MARGIN - 3, gridW + 6, gridH + 6, CORNER + 4);
-
-  // Rounded backdrop
-  fill(12, 16, 38, 170);
-  rect(MARGIN, TOP_MARGIN + MARGIN, gridW, gridH, CORNER);
-
   // Border — bright neon glow, pulses red under time pressure
+  noStroke();
   color borderCol = arcadeBlue;
   float borderAlpha = 160;
   float borderWeight = 2;
@@ -670,10 +682,10 @@ void drawGrid() {
       int cy = r * CELL;
 
       if (owner == -1) {
-        float n = noise(c * 0.3, r * 0.3);
-        float g = 12 + n * 30;
-        fill(g, g, g + 5);
+        // Slight dim over background
+        fill(0, 230);
         rect(cx, cy, cs, cs);
+        continue;
       } else {
         Bot ownerBot = bots.get(owner);
         color base = ownerBot.col;
@@ -727,6 +739,162 @@ void drawGrid() {
         rect(c * CELL, (r + 1) * CELL, CELL, 1);
       }
     }
+  }
+}
+
+// ── Terrain cell rendering ──────────────────────────────────
+void drawTerrainCell(int cx, int cy, int cs, float n, int r, int c) {
+  switch (terrainPalette) {
+
+    case 1:  // Dig Dug — layered earth with strata and rocks
+      int stratum = r / 4;
+      float warmth = 0.5 + 0.5 * sin(stratum * 0.8);
+      fill(22 + n * 35 + warmth * 15, 12 + n * 20 + warmth * 5, 5 + n * 8);
+      rect(cx, cy, cs, cs);
+      // Horizontal strata lines at layer boundaries
+      if (r % 4 == 0) {
+        fill(45 + n * 30, 28 + n * 15, 10, 90);
+        rect(cx, cy, cs, 1);
+      }
+      // Embedded rocks
+      if (n > 0.68) {
+        fill(12, 8, 4);
+        rect(cx + 1, cy + 1, max(1, cs - 2), max(1, cs - 2));
+        fill(35, 25, 15, 100);
+        rect(cx + 2, cy + 1, max(1, cs - 3), 1);
+      }
+      break;
+
+    case 2:  // Tron — dark void with glowing grid
+      fill(1, 2 + n * 5, 6 + n * 8);
+      rect(cx, cy, cs, cs);
+      // Glowing grid lines every 8 cells
+      if (c % 8 == 0) {
+        fill(0, 100 + n * 80, 220, 35);
+        rect(cx, cy, 1, cs);
+      }
+      if (r % 8 == 0) {
+        fill(0, 100 + n * 80, 220, 35);
+        rect(cx, cy, cs, 1);
+      }
+      // Bright nodes at intersections
+      if (c % 8 == 0 && r % 8 == 0) {
+        fill(0, 220, 255, 120);
+        rect(cx, cy, max(1, cs / 2), max(1, cs / 2));
+      }
+      // Faint circuit traces
+      if (n > 0.6 && (r + c) % 3 == 0) {
+        fill(0, 60, 120, 20);
+        rect(cx, cy, cs, 1);
+      }
+      break;
+
+    case 3:  // Frogger — swamp water with ripples and lily pads
+      float wave = sin(r * 0.3 + c * 0.1) * 0.5 + 0.5;
+      fill(5 + n * 8, 18 + n * 28 + wave * 12, 12 + n * 15);
+      rect(cx, cy, cs, cs);
+      // Horizontal water ripple bands
+      if ((r + (int)(n * 10)) % 5 == 0) {
+        fill(15, 55 + n * 35, 25, 60);
+        rect(cx, cy, cs, 1);
+      }
+      // Dark water patches
+      if (n < 0.3) {
+        fill(2, 10, 8, 60);
+        rect(cx, cy, cs, cs);
+      }
+      // Lily pad clusters
+      if (n > 0.76 && (r + c) % 7 == 0) {
+        fill(25, 90 + n * 40, 15);
+        rect(cx, cy, cs, cs);
+        fill(35, 120, 25, 100);
+        rect(cx + 1, cy + 1, max(1, cs - 2), max(1, cs - 2));
+      }
+      break;
+
+    case 4:  // Pac-Man — dark maze with pellets
+      fill(3 + n * 6, 3 + n * 5, 16 + n * 18);
+      rect(cx, cy, cs, cs);
+      // Maze wall edges — lighter outlines on grid pattern
+      boolean wallH = r % 6 < 2 && n > 0.4;
+      boolean wallV = c % 6 < 2 && n > 0.4;
+      if (wallH || wallV) {
+        fill(15, 15, 55 + n * 30);
+        rect(cx, cy, cs, cs);
+        // Wall highlight
+        fill(25, 25, 80, 50);
+        rect(cx, cy, cs, 1);
+      }
+      // Pellet dots in open corridors
+      if (!wallH && !wallV && r % 4 == 2 && c % 4 == 2) {
+        fill(255, 230, 120, 90);
+        int dotSz = max(1, cs / 3);
+        rect(cx + cs / 2 - dotSz / 2, cy + cs / 2 - dotSz / 2, dotSz, dotSz);
+      }
+      // Power pellets (larger, rarer)
+      if (!wallH && !wallV && r % 16 == 2 && c % 16 == 2) {
+        fill(255, 230, 120, 140);
+        int dotSz = max(2, cs / 2);
+        rect(cx + cs / 2 - dotSz / 2, cy + cs / 2 - dotSz / 2, dotSz, dotSz);
+      }
+      break;
+
+    case 5:  // Galaga — deep space with stars and nebulae
+      fill(3 + n * 6, 2 + n * 3, 8 + n * 12);
+      rect(cx, cy, cs, cs);
+      // Twinkling stars
+      if (n > 0.78) {
+        float twinkle = 0.5 + 0.5 * sin(frameCount * 0.15 + c * 7.3 + r * 13.1);
+        fill(200 + twinkle * 55, 200 + twinkle * 55, 255, 70 + twinkle * 130);
+        int starSz = max(1, cs / 4);
+        rect(cx + cs / 2, cy + cs / 2, starSz, starSz);
+      }
+      // Dim stars
+      if (n > 0.6 && n < 0.65) {
+        fill(150, 150, 180, 40);
+        rect(cx + cs / 2, cy + cs / 2, 1, 1);
+      }
+      // Nebula clouds — faint color washes
+      float nebula = sin(r * 0.08 + c * 0.06) * 0.5 + 0.5;
+      if (nebula > 0.7) {
+        fill(30, 5, 25, 18);
+        rect(cx, cy, cs, cs);
+      } else if (nebula < 0.3) {
+        fill(5, 10, 30, 15);
+        rect(cx, cy, cs, cs);
+      }
+      break;
+
+    case 6:  // Sky — bright blue with drifting clouds
+      // Gradient: lighter blue at top, deeper at bottom
+      float skyDepth = (float) r / ROWS;
+      fill(80 - skyDepth * 30, 150 - skyDepth * 40, 235 - skyDepth * 30);
+      rect(cx, cy, cs, cs);
+      // Clouds — soft white where noise is high
+      if (n > 0.52) {
+        float cloudDensity = (n - 0.52) / 0.48;  // 0 to 1
+        float bright = cloudDensity * cloudDensity; // soft falloff
+        fill(255, 255, 255, bright * 180);
+        rect(cx, cy, cs, cs);
+        // Cloud highlight on top edge
+        if (n > 0.62) {
+          fill(255, 255, 255, bright * 60);
+          rect(cx, cy, cs, max(1, cs / 2));
+        }
+      }
+      // Cloud shadow — slightly darker blue below dense clouds
+      float above = noise(c * 0.3 + frameCount * 0.006, (r - 3) * 0.3 + frameCount * 0.004);
+      if (above > 0.62 && n < 0.52) {
+        fill(0, 10, 30, 30);
+        rect(cx, cy, cs, cs);
+      }
+      break;
+
+    default: // Dark grey (original)
+      float g = 12 + n * 30;
+      fill(g, g, g + 5);
+      rect(cx, cy, cs, cs);
+      break;
   }
 }
 
@@ -809,19 +977,19 @@ void drawMuteButton() {
   noStroke();
 }
 
+void toggleMute() {
+  musicMuted = !musicMuted;
+  if (music != null) {
+    music.amp(musicMuted ? 0 : 0.9);
+  }
+}
+
 void mousePressed() {
   float bx = MUTE_X;
   float by = height - MUTE_Y_OFF - MUTE_SZ;
   if (mouseX >= bx - 4 && mouseX <= bx + MUTE_SZ + 4 &&
       mouseY >= by - 4 && mouseY <= by + MUTE_SZ + 4) {
-    musicMuted = !musicMuted;
-    if (music != null) {
-      if (musicMuted) {
-        music.amp(0);
-      } else {
-        music.amp(0.9);
-      }
-    }
+    toggleMute();
   }
 }
 
@@ -856,6 +1024,11 @@ void keyPressed() {
     dimMode = !dimMode;
   }
 
+  // M = toggle mute
+  if (key == 'm' || key == 'M') {
+    toggleMute();
+  }
+
   // Admin code: type 1983 to unlock T and B
   if (key >= '0' && key <= '9') {
     adminBuffer += key;
@@ -877,7 +1050,10 @@ void keyPressed() {
     fadeToPreMusic = true;
   }
 
-  // T = start tournament mode (admin only, needs bots)
+  // T = cycle terrain palette (non-admin), or start tournament (admin)
+  if ((key == 't' || key == 'T') && !adminUnlocked) {
+    terrainPalette = (terrainPalette + 1) % TERRAIN_COUNT;
+  }
   if ((key == 't' || key == 'T') && adminUnlocked && tournamentBotList.size() > 1) {
     tournamentMode = true;
     beastMode = false;

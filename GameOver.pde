@@ -95,6 +95,18 @@ void drawGameOverFull() {
   // ── Podium ──
   drawPodium(sorted, cx, divY + 18, panelW, t, pulse, fastPulse);
 
+  // ── Mascot ──
+  if (mascotImg != null) {
+    float mascotH = panelH * 0.55;
+    float mascotW = mascotH * ((float) mascotImg.width / mascotImg.height);
+    float mascotX = panelX - mascotW - 10;
+    float mascotY = panelY + panelH - mascotH;
+    mascotY += sin(frameCount * 0.04) * 5;
+    tint(255, 220);
+    image(mascotImg, mascotX, mascotY, mascotW, mascotH);
+    noTint();
+  }
+
   // ── "PRESS SPACE" ──
   float promptY = panelY + panelH - 32;
   drawFlashPrompt("PRESS SPACE TO PLAY AGAIN", cx, promptY, fastPulse);
@@ -182,6 +194,18 @@ void drawBeastGameOver() {
 
   // ── Podium ──
   drawPodium(sorted, cx, divY2 + 18, panelW, t, pulse, fastPulse);
+
+  // ── Mascot ──
+  if (mascotImg != null) {
+    float mascotH = panelH * 0.55;
+    float mascotW = mascotH * ((float) mascotImg.width / mascotImg.height);
+    float mascotX = panelX - mascotW - 10;
+    float mascotY = panelY + panelH - mascotH;
+    mascotY += sin(frameCount * 0.04) * 5;
+    tint(255, 220);
+    image(mascotImg, mascotX, mascotY, mascotW, mascotH);
+    noTint();
+  }
 
   // ── "PRESS SPACE" ──
   float promptY = panelY + panelH - 32;

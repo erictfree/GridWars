@@ -25,7 +25,7 @@ Grid Wars is a bot-vs-bot territory game. Bots move around a grid claiming cells
 | **L** | Toggle leaderboard sidebar on/off |
 | **Z** | Toggle magnifier on the leading bot |
 | **D** | Toggle dim mode (fades non-halo bots to focus on yours) |
-| **Click mute icon** | Mute/unmute music (lower-left corner) |
+| **M** | Mute/unmute music |
 
 ---
 
