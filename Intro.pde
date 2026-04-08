@@ -130,12 +130,13 @@ void drawCreditsScroll(float cx, float fastPulse, float clipTop) {
     + lineH + lineH + sectionGap                             // instructor section
     + lineH + (creditsStaff.length - 1) * lineH + sectionGap // TAs
     + lineH + creditsStudents.length * studentLineH;         // students
-  // Add visible area height so last name scrolls fully off before restart
-  float totalH = contentH + (clipBot - clipTop);
+  // Full cycle: content scrolls from bottom to off the top, then restarts
+  float visibleH = clipBot - clipTop;
+  float totalH = contentH + visibleH + 60;
 
-  // Scroll speed: 0.8 px/frame, start at top of clip region, loop
+  // Scroll speed: 0.8 px/frame, enter from bottom, scroll upward
   float rawScroll = stateTimer * 0.8;
-  float scrollY = clipTop + 10 - (rawScroll % totalH);
+  float scrollY = clipBot - (rawScroll % totalH);
   float y = scrollY;
 
   // ── Title ──
