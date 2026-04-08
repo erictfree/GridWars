@@ -272,7 +272,7 @@ Adding fields to your class lets your bot remember things between steps. This is
 
 ## Testing Your Bot
 
-Edit `TestConfig.pde` to set up your test match. This is the only file you need to change:
+Edit `TestConfig.pde` to set up your test match:
 
 ```java
 void configureTestBots() {

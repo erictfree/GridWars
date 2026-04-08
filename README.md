@@ -26,7 +26,7 @@ class LastnameFirstname extends Bot {
 }
 ```
 
-Then register your bot in `BotFactory.pde` and test it via `TestConfig.pde`.
+Then add your bot to your test match in `TestConfig.pde`.
 
 ### GameInfo API
 

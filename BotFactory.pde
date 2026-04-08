@@ -26,16 +26,19 @@
  */
 
 // ── Bot Factory ──────────────────────────────────────────────
-// Maps class names to instances.
-// Processing doesn't support reflection, so this is a manual lookup.
-// Add student bots here before the tournament.
+// Uses reflection to find bot classes automatically.
+// Just drop your .pde file in the sketch folder — no registration needed.
 
 Bot createStudentBot(String className, int x, int y, color c) {
-  switch (className) {
-    // ── Built-in bots ──────────────────────────────────────
-    case "SmartBot":        return new SmartBot(x, y, c, className);
-    case "RandomBot":       return new RandomBot(x, y, c, className);
-    // ── Student bots (add before tournament) ────────────────
-    default: return null;
+  try {
+    // Processing inner classes are named SketchName$ClassName
+    Class<?> cls = Class.forName("GridWars$" + className);
+    java.lang.reflect.Constructor<?> ctor = cls.getConstructor(
+      this.getClass(), int.class, int.class, int.class, String.class
+    );
+    return (Bot) ctor.newInstance(this, x, y, c, className);
+  } catch (Exception e) {
+    println("Bot not found: " + className);
+    return null;
   }
 }

@@ -734,13 +734,15 @@ void drawGrid() {
 
 // Split "LastFirst" into "First Last"
 String displayName(String name) {
+  // Strip "Bot" suffix if present
+  String base = name.endsWith("Bot") ? name.substring(0, name.length() - 3) : name;
   // Find the second uppercase letter — that's where the first name starts
-  for (int i = 1; i < name.length(); i++) {
-    if (Character.isUpperCase(name.charAt(i))) {
-      return name.substring(i) + " " + name.substring(0, i);
+  for (int i = 1; i < base.length(); i++) {
+    if (Character.isUpperCase(base.charAt(i))) {
+      return base.substring(i) + " " + base.substring(0, i);
     }
   }
-  return name;
+  return base;
 }
 
 Direction randomDir() {
