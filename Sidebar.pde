@@ -118,6 +118,14 @@ void drawSidebar() {
       rect(3, ey, sw - 6, entryH);
     }
 
+    // Separator glow line between entries
+    if (vi > 0) {
+      stroke(red(arcadeBlue), green(arcadeBlue), blue(arcadeBlue), 30);
+      strokeWeight(1);
+      line(10, ey, sw - 10, ey);
+      noStroke();
+    }
+
     // Top-3 highlight
     if (di == 0) {
       fill(255, 255, 0, 15);

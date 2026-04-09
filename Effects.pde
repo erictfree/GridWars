@@ -96,8 +96,32 @@ class Particle {
 ArrayList<Particle> particles;
 int lastSparkleStep = 0;
 
+// ── Claim ripples ──────────────────────────────────────────
+ArrayList<float[]> ripples = new ArrayList<float[]>();  // {x, y, r, g, b, birth}
+
+void spawnRipple(float cx, float cy, color col) {
+  ripples.add(new float[]{ cx, cy, red(col), green(col), blue(col), (float)frameCount });
+}
+
+void drawRipples() {
+  for (int i = ripples.size() - 1; i >= 0; i--) {
+    float[] rp = ripples.get(i);
+    int age = frameCount - (int) rp[5];
+    if (age > 20) { ripples.remove(i); continue; }
+    float t = (float) age / 20;
+    float radius = CELL * (2 + t * 6);
+    float alpha = (1 - t) * 150;
+    noFill();
+    stroke(rp[2], rp[3], rp[4], alpha);
+    strokeWeight(max(1, 2.5 * (1 - t)));
+    ellipse(rp[0], rp[1], radius, radius);
+  }
+  noStroke();
+}
+
 void initEffects() {
   particles = new ArrayList<Particle>();
+  ripples = new ArrayList<float[]>();
   lastSparkleStep = 0;
 }
 
@@ -236,6 +260,7 @@ void drawGridEffects() {
       p.show();
     }
   }
+  drawRipples();
   drawCrownIndicator();
   drawProximitySparks();
   drawMilestonePopups();

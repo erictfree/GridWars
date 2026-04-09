@@ -45,6 +45,6 @@
 // ─────────────────────────────────────────────────────────────
 
 void configureTestBots() {
-  addBot("RandomBot", 10);
-  addBot("SmartBot", 10, true);
+  addBot("RandomBot", 1);
+  addBot("SmartBot", 1);
 }

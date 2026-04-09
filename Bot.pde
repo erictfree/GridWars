@@ -138,11 +138,14 @@ class Bot {
       claimFrame[y][x] = frameCount;
       streak++;
 
-      // Sparkle on claim
+      // Sparkle + ripple on claim
       float cx = x * CELL + CELL / 2.0;
       float cy = y * CELL + CELL / 2.0;
       if (random(1) < 0.3) {
         spawnClaimSparkle(cx, cy, col);
+      }
+      if (random(1) < 0.15) {
+        spawnRipple(cx, cy, col);
       }
       // Streak burst every 20 consecutive claims
       if (streak % 100 == 0) {

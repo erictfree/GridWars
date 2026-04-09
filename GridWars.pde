@@ -124,6 +124,12 @@ boolean musicMuted = false;
 int lastTestTrack = 0;
 int lastPreTrack = 0;
 
+// ── FFT beat analysis (toggle with F) ──────────────────────
+FFT fft;
+boolean fftEnabled = false;
+float beatLevel = 0;       // smoothed beat intensity 0–1
+final int FFT_BANDS = 64;
+
 // ── UI colors (retro arcade) ────────────────────────────────
 color unclaimedColor, sidebarBg, hudBg, arcadeBlue;
 
@@ -200,6 +206,9 @@ void setup() {
   arcadeFont = createFont("PressStart2P-Regular.ttf", 48);
   textFont(arcadeFont);
 
+  // FFT analyzer
+  fft = new FFT(this, FFT_BANDS);
+
   // Sound effects
   initEffects();
 
@@ -225,6 +234,7 @@ void playPreMusic() {
   music = new SoundFile(this, "pre" + pick + ".mp3");
   music.amp(musicMuted ? 0 : 0.9);
   music.loop();
+  fft.input(music);
 }
 
 void playRandomTheme() {
@@ -235,6 +245,7 @@ void playRandomTheme() {
   music = new SoundFile(this, "theme" + pick + ".mp3");
   music.amp(musicMuted ? 0 : 0.9);
   music.loop();
+  fft.input(music);
 }
 
 void playTestMusic() {
@@ -249,6 +260,7 @@ void playTestMusic() {
   music = new SoundFile(this, "test" + pick + ".mp3");
   music.amp(musicMuted ? 0 : 0.9);
   music.loop();
+  fft.input(music);
 }
 
 void stopMusic() {
@@ -378,6 +390,7 @@ void initBeastMode() {
   music = new SoundFile(this, "beast.mp3");
   music.amp(musicMuted ? 0 : 0.9);
   music.loop();
+  fft.input(music);
 }
 
 void addBot(Bot p) {
@@ -392,6 +405,20 @@ void addBot(Bot p) {
 void draw() {
   stateTimer++;
   tourneyTimer++;
+
+  // ── FFT beat analysis ──
+  if (fftEnabled && music != null && music.isPlaying()) {
+    fft.analyze();
+    // Sum low bass bands and amplify for beat detection
+    float bass = 0;
+    for (int i = 0; i < 8; i++) bass += fft.spectrum[i];
+    bass = constrain(bass * 4.0, 0, 1);  // amplify and clamp
+    // Smooth: fast attack, slow decay
+    if (bass > beatLevel) beatLevel = lerp(beatLevel, bass, 0.7);
+    else beatLevel *= 0.85;
+  } else {
+    beatLevel *= 0.92;
+  }
 
   // ── Music fade out ──
   if (fadeOutMusic && music != null) {
@@ -675,6 +702,10 @@ void drawGrid() {
   int gap = 1;                             // 1px gap between cells
   int cs = CELL - gap;                     // cell draw size
 
+  // Grid line tint — faint dark blue in the gaps like an old monitor pixel grid
+  fill(8, 12, 35);
+  rect(0, 0, COLS * CELL, ROWS * CELL);
+
   for (int r = 0; r < ROWS; r++) {
     for (int c = 0; c < COLS; c++) {
       int owner = grid[r][c];
@@ -683,8 +714,15 @@ void drawGrid() {
 
       if (owner == -1) {
         // Slight dim over background
-        fill(0, 230);
+        fill(0, 245);
         rect(cx, cy, cs, cs);
+        // Random sparkle
+        float sparkle = noise(c * 0.7, r * 0.7, frameCount * 0.02);
+        if (sparkle > 0.82) {
+          float bright = (sparkle - 0.82) / 0.18;
+          fill(180, 220, 255, bright * 45);
+          rect(cx, cy, cs, cs);
+        }
         continue;
       } else {
         Bot ownerBot = bots.get(owner);
@@ -692,8 +730,13 @@ void drawGrid() {
         boolean dim = dimMode && !ownerBot.halo;
         float dimAlpha = dim ? 0.3 : 1.0;
 
-        // Main cell fill
-        fill(red(base) * dimAlpha, green(base) * dimAlpha, blue(base) * dimAlpha, dim ? 140 : 235);
+        // Main cell fill — with optional beat pulse
+        // When FFT is on, base brightness drops and beat brings it back up
+        float baseDim = fftEnabled ? 0.35 : 1.0;
+        float beatBoost = fftEnabled ? beatLevel * 0.65 : 0;
+        float bright = min(1.0, baseDim + beatBoost) * dimAlpha;
+        fill(red(base) * bright, green(base) * bright, blue(base) * bright,
+             dim ? 140 : 235);
         rect(cx, cy, cs, cs);
 
         if (!dim) {
@@ -737,6 +780,24 @@ void drawGrid() {
       }
       if (r < ROWS - 1 && grid[r + 1][c] >= 0 && grid[r + 1][c] != owner) {
         rect(c * CELL, (r + 1) * CELL, CELL, 1);
+      }
+    }
+  }
+
+  // Territory edge glow — faint color bleeding into unclaimed darkness
+  for (int r = 0; r < ROWS; r++) {
+    for (int c = 0; c < COLS; c++) {
+      if (grid[r][c] >= 0) continue;  // skip claimed cells
+      // Check if any neighbor is claimed
+      for (int d = 0; d < 4; d++) {
+        int nr = r + (d == 0 ? -1 : d == 1 ? 1 : 0);
+        int nc = c + (d == 2 ? -1 : d == 3 ? 1 : 0);
+        if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && grid[nr][nc] >= 0) {
+          color ownerCol = bots.get(grid[nr][nc]).col;
+          fill(red(ownerCol), green(ownerCol), blue(ownerCol), 35);
+          rect(c * CELL, r * CELL, CELL - 1, CELL - 1);
+          break;  // one glow per cell is enough
+        }
       }
     }
   }
@@ -1027,6 +1088,12 @@ void keyPressed() {
   // M = toggle mute
   if (key == 'm' || key == 'M') {
     toggleMute();
+  }
+
+  // F = toggle FFT beat visualization
+  if (key == 'f' || key == 'F') {
+    fftEnabled = !fftEnabled;
+    if (!fftEnabled) beatLevel = 0;
   }
 
   // Admin code: type 1983 to unlock T and B
