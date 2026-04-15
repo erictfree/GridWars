@@ -209,10 +209,10 @@ if (abs(targetX - this.x) > abs(targetY - this.y)) {
 Your class can have instance variables that persist between calls. Track where you've been, plan a path, remember a strategy.
 
 ```java
-class SmartBot extends Bot {
+class SmithJaneBot extends Bot {
   boolean goingRight = true;
 
-  SmartBot(int startX, int startY, color col, String name) {
+  SmithJaneBot(int startX, int startY, color col, String name) {
     super(startX, startY, col, name);
   }
 
@@ -288,9 +288,9 @@ Add one line per bot. The second number is how many copies to add. The optional 
 
 **Available opponent bots:**
 
-| Bot          | Strategy                   |
-| ------------ | -------------------------- |
-| `SmartBot`    | Strong all-around opponent |
+| Bot         | Strategy                   |
+| ----------- | -------------------------- |
+| `SmartBot`  | Strong all-around opponent |
 | `RandomBot` | Random walk (easy)         |
 
 ## Rules
@@ -307,6 +307,8 @@ Add one line per bot. The second number is how many copies to add. The optional 
 ## What to Submit
 
 One `.pde` file named `LastnameFirstnameBot.pde` (e.g., `SmithJaneBot.pde`). The class name inside must match the file name exactly. Make sure it extends `Bot` and has the constructor that calls `super()`.
+
+Include a detailed comment at the top of your code explaining your algorithm, strategy, or specific approach. Because this is worth 20 points, your explanation should go beyond a sentence and clearly show the thinking, testing, and experimentation behind your solution.
 
 ## Deadline
 
