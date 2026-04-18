@@ -38,39 +38,7 @@ String[] creditsStaff = {
   "Kel Shang"
 };
 String[] creditsStudents = {
-  "Jahbari Allsop-Marsham", "Penny Anderson", "Jiro Andrus",
-  "Camila Barcelata", "Hayden Beatty", "Ishan Bhakta",
-  "Marnie Binfield", "Nathan Blackwell", "Julien Block",
-  "Alyssa Bobbitt", "Madison Booker", "Taylor Buehler",
-  "Ana Caballero Hernandez", "Carlo Calixco", "Dana Cano",
-  "Adrian Cardenas", "Jeremiah Carranza", "Michaela Cauthen",
-  "Addison Ceritelli", "Aiden Cerna", "Devon Chau",
-  "Domenica Collaro", "Zenith Collins", "Nathan Dart",
-  "Hailey De La Rosa", "Oz Dieckmann", "Martin Ding",
-  "Michael Edson", "Skylar Evans", "Neela Farzin",
-  "Alexa Field", "Bryan Flores", "Elena Garcia",
-  "Jordyn Gibson", "Arielle Hernandez", "Luna Hernandez",
-  "Wing Huang", "Angelina Ibarra", "Christian Ibarra",
-  "Chima John", "Avery Johnson", "Genae Johnson",
-  "Nicholas Kahler", "Kodi Khiraoui", "Daniel Kim",
-  "Jasmine Kim", "Asher Kime", "Kjartan Knutson-Ho",
-  "Ozzie Lask", "Hannah Lee", "Kade Lee",
-  "Vincent Lombardo", "Jeremiah Lopez", "Davis Luce",
-  "Christopher Macartney-Filgate", "Liana Manchala", "Ryan Marquez",
-  "Rodolfo Martinez Martine", "Emma McGlumphy", "Alba Medina",
-  "Raaj Srihan Mekala", "Nola Moore", "Paulina Mroue",
-  "Johnson Nguyen", "Maya Nguyen", "Ciara Noriega",
-  "Kyla Oldacre", "Sofia Ortiz", "Genieve Oviedo",
-  "Marcelo Pacheco", "LB Page", "Minho Park",
-  "Anshu Patel", "Yan Pena-Akens", "Victoria Perez",
-  "Siddharth Ramalingam", "Analiese Ramirez", "Delilah Reiss",
-  "Abigale Reyna", "Ava Rogaliner", "Jack Saladino",
-  "Vianae Salinas", "Matlyn Schwebs", "Sophia Scott",
-  "Ifeoluwa Senu-Oke", "Tyler Siebeneicher", "Melissa Strangis",
-  "Julian Sullivan", "Lucy Townsend", "Gabriel Tran",
-  "Parker Tumminello", "Conner Valdez", "Valeria Valles",
-  "Emma Varan", "William Volz", "Emily Yang",
-  "Emily Yao", "Hengyu Zhou"
+  "Coming soon..."
 };
 
 // ── Side tips for credits scroll ───────────────────────────────
